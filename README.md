@@ -22,14 +22,14 @@ The canonical brief it answers: _"give the public read-only access to current pr
 
 Website is being rebuilt from locked contracts. It is **not released yet**; the static compilation and projection core come first, and a good part of it already exists and is proven in the base repository:
 
-| Foundation                                                       | State       | Evidence                                                                                                                                       |
-| ---------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Contract suite** — Knowledge Object, Public Projection, Feeds  | ✅ locked   | CDC approved and merged; canonical schemas under `contracts/schemas/` ([#209](https://github.com/libre-ai/libre-ai/pull/209))                  |
-| **Corpus compiler** — select, validate and de-duplicate content  | ✅ defined  | Refusal matrix, validation logic, event schema ([`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md)) |
-| **Static template** — accessible Bun.serve shell                 | ✅ designed | HTML semantics, CSS tokens, keyboard/zoom/motion ([`apps/website`](https://github.com/libre-ai/libre-ai/tree/main/apps/website))               |
-| **Route projection** — deterministic build, feed and search JSON | ⏳ next     | Bun template instantiation, Pagefind indexing, RSS/Atom generation                                                                             |
-| **Publication pipeline** — source-validated → rendered → smoke   | ⏳ next     | Candidate builds, integrity checks, approval gate                                                                                              |
-| **Browser and accessibility gates** — Chromium/Firefox/WebKit    | ⏳ next     | CSP, remote-request budget zero, no-JS keyboard, zoom and contrast tests                                                                       |
+| Foundation                                                       | State       | Evidence                                                                                                                                                          |
+| ---------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Contract suite** — Knowledge Object, Public Projection, Feeds  | ✅ locked   | CDC approved and merged; canonical schemas under `contracts/schemas/` ([#209](https://github.com/libre-ai/libre-ai/pull/209))                                     |
+| **Corpus compiler** — select, validate and de-duplicate content  | ✅ defined  | Refusal matrix, validation logic, event schema ([`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md))                    |
+| **Static template** — accessible Bun.serve shell                 | ✅ designed | HTML semantics, CSS tokens, keyboard/zoom/motion (design locked in [`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md)) |
+| **Route projection** — deterministic build, feed and search JSON | ⏳ next     | Bun template instantiation, Pagefind indexing, RSS/Atom generation                                                                                                |
+| **Publication pipeline** — source-validated → rendered → smoke   | ⏳ next     | Candidate builds, integrity checks, approval gate                                                                                                                 |
+| **Browser and accessibility gates** — Chromium/Firefox/WebKit    | ⏳ next     | CSP, remote-request budget zero, no-JS keyboard, zoom and contrast tests                                                                                          |
 
 This repository is archived and read-only until wave 4 activation. **No benchmark target** — this is the organization's own public projection, not a parity goal against another vendor's site. The measure of success is complete, honest, tracking-free projection of reviewed knowledge.
 
@@ -74,7 +74,7 @@ The authorizing host passes canonical snapshot bytes to the renderer; the render
 
 All active development is in the base repository, under:
 
-- `apps/website` — the static template, publication CLI and server shell.
+- `apps/website` — the static template, publication CLI and server shell (to be scaffolded).
 - `contracts/schemas/` — Knowledge Object, Public Projection and Correction Record definitions.
 - `ecosystem/repositories.v1.yaml` — the authoritative product inventory and exposure states.
 - `docs/apps/website.md` — the full product brief.

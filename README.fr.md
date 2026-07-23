@@ -22,14 +22,14 @@ Le cas canonique auquel il répond : _« donner au public un accès en lecture s
 
 Website est reconstruit à partir de contrats verrouillés. Il **n'est pas encore publié** ; la compilation statique et le cœur de projection viennent d'abord, et une bonne part existe déjà et est prouvée dans le dépôt de base :
 
-| Fondation                                                                   | État          | Preuve                                                                                                                                                      |
-| --------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Suite de contrats** — Knowledge Object, Public Projection, Feeds          | ✅ verrouillé | CDC approuvé et fusionné ; schémas canoniques sous `contracts/schemas/` ([#209](https://github.com/libre-ai/libre-ai/pull/209))                             |
-| **Compilateur de corpus** — sélection, validation et dédupliquage           | ✅ défini     | Matrice de refus, logique de validation, schéma d'événement ([`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md)) |
-| **Modèle statique** — coque Bun.serve accessible                            | ✅ conçu      | Sémantique HTML, tokens CSS, clavier/zoom/mouvement ([`apps/website`](https://github.com/libre-ai/libre-ai/tree/main/apps/website))                         |
-| **Projection de route** — construction déterministe, feed et JSON recherche | ⏳ suite      | Instanciation de modèle Bun, indexation Pagefind, génération RSS/Atom                                                                                       |
-| **Pipeline de publication** — source-validée → rendue → fumée               | ⏳ suite      | Constructions candidates, vérifications d'intégrité, gate d'approbation                                                                                     |
-| **Gates navigateur et accessibilité** — Chromium/Firefox/WebKit             | ⏳ suite      | CSP, budget de requête distante zéro, clavier sans JS, tests de zoom et contraste                                                                           |
+| Fondation                                                                   | État          | Preuve                                                                                                                                                                          |
+| --------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Suite de contrats** — Knowledge Object, Public Projection, Feeds          | ✅ verrouillé | CDC approuvé et fusionné ; schémas canoniques sous `contracts/schemas/` ([#209](https://github.com/libre-ai/libre-ai/pull/209))                                                 |
+| **Compilateur de corpus** — sélection, validation et dédupliquage           | ✅ défini     | Matrice de refus, logique de validation, schéma d'événement ([`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md))                     |
+| **Modèle statique** — coque Bun.serve accessible                            | ✅ conçu      | Sémantique HTML, tokens CSS, clavier/zoom/mouvement (conception verrouillée dans [`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md)) |
+| **Projection de route** — construction déterministe, feed et JSON recherche | ⏳ suite      | Instanciation de modèle Bun, indexation Pagefind, génération RSS/Atom                                                                                                           |
+| **Pipeline de publication** — source-validée → rendue → fumée               | ⏳ suite      | Constructions candidates, vérifications d'intégrité, gate d'approbation                                                                                                         |
+| **Gates navigateur et accessibilité** — Chromium/Firefox/WebKit             | ⏳ suite      | CSP, budget de requête distante zéro, clavier sans JS, tests de zoom et contraste                                                                                               |
 
 Ce dépôt est archivé et en lecture seule jusqu'à l'activation de la vague 4. **Aucune cible de référence** — ceci est la projection publique propre de l'organisation, non un objectif de parité contre le site d'un autre fournisseur. La mesure du succès est la projection complète, honnête et sans suivi du savoir examiné.
 
@@ -74,7 +74,7 @@ L'hôte qui autorise passe les octets d'instantané canoniques au moteur de rend
 
 Tout le développement actif est dans le dépôt de base, sous :
 
-- `apps/website` — le modèle statique, la CLI de publication et la coque du serveur.
+- `apps/website` — le modèle statique, la CLI de publication et la coque du serveur (à créer).
 - `contracts/schemas/` — définitions de Knowledge Object, Public Projection et Correction Record.
 - `ecosystem/repositories.v1.yaml` — l'inventaire de produits canonique et les états d'exposition.
 - `docs/apps/website.md` — le cahier des charges complet du produit.
