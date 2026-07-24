@@ -1,0 +1,19 @@
+# Secrets — a real environment file must never reach this public repository.
+# `.env.example` is tracked on purpose: it documents the required keys, without values.
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+target/
+.output/
+
+# Local tooling scratch — agent worktrees and generator working directories
+.claude/worktrees/
+_bmad/
+
+# macOS
+.DS_Store
