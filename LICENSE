@@ -15,6 +15,7 @@ The organization-wide licensing policy — scope, precedence, historical grants,
 data and contribution rules — is the canonical one and is not restated here:
 https://github.com/libre-ai/libre-ai/blob/main/LICENSING.md
 
-Historical revisions previously published under MIT OR Apache-2.0 remain
-available under those terms, as do the revisions published under EUPL-1.2
-before this per-path declaration. No previous licence grant is withdrawn.
+This repository carried no LICENSE file before 2026-07-25, so no MIT or
+Apache-2.0 grant was ever made here and none is withdrawn. The revisions
+published under the EUPL-1.2 declaration that preceded this per-path one
+remain available under those terms.
