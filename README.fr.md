@@ -103,4 +103,9 @@ N'importe lequel de ces refus empêche une construction candidate de se publier.
 
 ## Licence
 
-EUPL-1.2 — texte complet dans [`LICENSE`](LICENSE). Copyright (c) 2026 Libre AI contributors.
+Les licences sont déclarées par chemin via [`REUSE.toml`](REUSE.toml) :
+
+- CC-BY-4.0 — la documentation (READMEs)
+- EUPL-1.2 — les workflows sous `.github/` et la configuration du dépôt
+
+Textes complets dans [`LICENSES/`](LICENSES). Copyright (c) 2026 Libre AI contributors. La politique de licence canonique est [libre-ai/libre-ai/LICENSING.md](https://github.com/libre-ai/libre-ai/blob/main/LICENSING.md).
