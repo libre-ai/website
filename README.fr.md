@@ -31,7 +31,7 @@ Website est reconstruit à partir de contrats verrouillés. Il **n'est pas encor
 | **Pipeline de publication** — source-validée → rendue → fumée               | ⏳ suite      | Constructions candidates, vérifications d'intégrité, gate d'approbation                                                                                                         |
 | **Gates navigateur et accessibilité** — Chromium/Firefox/WebKit             | ⏳ suite      | CSP, budget de requête distante zéro, clavier sans JS, tests de zoom et contraste                                                                                               |
 
-Ce dépôt est archivé et en lecture seule jusqu'à l'activation de la vague 4. **Aucune cible de référence** — ceci est la projection publique propre de l'organisation, non un objectif de parité contre le site d'un autre fournisseur. La mesure du succès est la projection complète, honnête et sans suivi du savoir examiné.
+Ce dépôt est réservé, non archivé : le README est tenu à jour, les issues sont désactivées, et aucun code produit n'y atterrit avant l'activation de la vague 4. **Aucune cible de référence** — ceci est la projection publique propre de l'organisation, non un objectif de parité contre le site d'un autre fournisseur. La mesure du succès est la projection complète, honnête et sans suivi du savoir examiné.
 
 ## Ce qu'il projette
 
@@ -103,4 +103,4 @@ N'importe lequel de ces refus empêche une construction candidate de se publier.
 
 ## Licence
 
-EUPL-1.2.
+EUPL-1.2 — texte complet dans [`LICENSE`](LICENSE). Copyright (c) 2026 Libre AI contributors.

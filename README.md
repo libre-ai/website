@@ -31,7 +31,7 @@ Website is being rebuilt from locked contracts. It is **not released yet**; the 
 | **Publication pipeline** — source-validated → rendered → smoke   | ⏳ next     | Candidate builds, integrity checks, approval gate                                                                                                                 |
 | **Browser and accessibility gates** — Chromium/Firefox/WebKit    | ⏳ next     | CSP, remote-request budget zero, no-JS keyboard, zoom and contrast tests                                                                                          |
 
-This repository is archived and read-only until wave 4 activation. **No benchmark target** — this is the organization's own public projection, not a parity goal against another vendor's site. The measure of success is complete, honest, tracking-free projection of reviewed knowledge.
+This repository is reserved, not archived: the README is kept current, issues are disabled, and no product code lands here until wave 4 activation. **No benchmark target** — this is the organization's own public projection, not a parity goal against another vendor's site. The measure of success is complete, honest, tracking-free projection of reviewed knowledge.
 
 ## What it projects
 
@@ -103,4 +103,4 @@ Any one of these refusals prevents a candidate build from releasing. The refusal
 
 ## License
 
-EUPL-1.2.
+EUPL-1.2 — full text in [`LICENSE`](LICENSE). Copyright (c) 2026 Libre AI contributors.
