@@ -1,0 +1,19 @@
+version = 1
+
+# This repository carries no application and no product code: the READMEs are
+# editorial documentation and first-party project records. Annotations follow
+# the canonical policy in libre-ai/libre-ai/LICENSING.md; the last matching
+# annotation wins within this file.
+[[annotations]]
+path = ["*.md", "**/*.md"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Libre AI contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# First-party software by default: repository workflows and configuration,
+# matching the canonical `.github/**` annotation.
+[[annotations]]
+path = [".github/**", ".gitignore"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Libre AI contributors"
+SPDX-License-Identifier = "EUPL-1.2"

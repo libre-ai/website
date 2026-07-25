@@ -103,4 +103,9 @@ Any one of these refusals prevents a candidate build from releasing. The refusal
 
 ## License
 
-EUPL-1.2 — full text in [`LICENSE`](LICENSE). Copyright (c) 2026 Libre AI contributors.
+Licences are declared per path through [`REUSE.toml`](REUSE.toml):
+
+- CC-BY-4.0 — the documentation (READMEs)
+- EUPL-1.2 — the workflows under `.github/` and the repository configuration
+
+Full licence texts are in [`LICENSES/`](LICENSES). Copyright (c) 2026 Libre AI contributors. The canonical licensing policy is [libre-ai/libre-ai/LICENSING.md](https://github.com/libre-ai/libre-ai/blob/main/LICENSING.md).
