@@ -13,7 +13,7 @@ SPDX-License-Identifier = "CC-BY-4.0"
 # First-party software by default: repository workflows and configuration,
 # matching the canonical `.github/**` annotation.
 [[annotations]]
-path = [".github/**", ".gitignore"]
+path = [".github/**", ".gitignore", ".env.example"]
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Libre AI contributors"
 SPDX-License-Identifier = "EUPL-1.2"
