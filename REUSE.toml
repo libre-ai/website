@@ -24,3 +24,10 @@ path = ["project.v1.yaml"]
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Libre AI contributors"
 SPDX-License-Identifier = "EUPL-1.2"
+
+# Static publisher bootstrap (γ 3.6) — code EUPL-1.2 like the doctrine.
+[[annotations]]
+path = ["src/**", "package.json", "bun.lock", "bunfig.toml", "tsconfig.json", "biome.json", ".gitignore"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Libre AI contributors"
+SPDX-License-Identifier = "EUPL-1.2"
