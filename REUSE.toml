@@ -31,3 +31,10 @@ path = ["src/**", "package.json", "bun.lock", "bunfig.toml", "tsconfig.json", "b
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Libre AI contributors"
 SPDX-License-Identifier = "EUPL-1.2"
+
+# CDC migrated from the hub (γ 3.6) — documentation grant.
+[[annotations]]
+path = ["docs/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Libre AI contributors"
+SPDX-License-Identifier = "CC-BY-4.0"

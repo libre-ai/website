@@ -15,10 +15,10 @@ statement:
     - "aucun tracking, aucun compte, aucune mutation anonyme de contenu"
 summary: "Projection publique citable du savoir, des produits et des preuves reviewés — statique, sans tracking."
 current_situation: >-
-  Repo activé de fait (sept pull requests de gouvernance mergées), CDC
-  verrouillé (docs/apps/website.md) ; aucune page n'est encore publiée. La
-  première projection — page d'accueil avec le tableau d'état de la
-  constellation et comparaisons datées — est le livrable de la phase γ 3.6.
+  Le publieur statique rend la page d'accueil (tableau d'état de la
+  constellation depuis la projection fleet-status épinglée) et les huit
+  comparaisons datées, chaîne verte en CI réelle ; le CDC complet
+  (docs/apps/website.md, migré du hub) reste à servir.
 scope:
   - "page d'accueil : état des projets généré depuis les fiches (jamais déclaré)"
   - "comparaisons factuelles datées et sourcées"
@@ -46,11 +46,17 @@ phases:
       - id: homepage-table
         text: "La page d'accueil publie le tableau « état des projets » généré depuis la projection fleet-status, sans pourcentage manuel."
         weight: 3
-        status: pending
+        status: accepted
+        evidence:
+          date: "2026-07-30"
+          reference: "run quality vert sur libre-ai/website@2f835223 (dist/index.html généré en CI)"
       - id: dated-comparisons
         text: "Les huit comparaisons datées et sourcées sont publiées avec leur date de vérification."
         weight: 2
-        status: pending
+        status: accepted
+        evidence:
+          date: "2026-07-30"
+          reference: "run quality vert sur libre-ai/website@2f835223 (dist/comparaisons.html, 8 lignes sourcées)"
   - id: cdc
     title: CDC complet (publication statique vérifiable)
     exit_criteria:

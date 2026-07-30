@@ -115,12 +115,12 @@ Full licence texts are in [`LICENSES/`](LICENSES). Copyright (c) 2026 Libre AI c
 <!-- libre-ai:project-status:begin -->
 <!-- Section générée depuis project.v1.yaml — ne pas éditer à la main. -->
 
-- Situation actuelle : Repo activé de fait (sept pull requests de gouvernance mergées), CDC verrouillé (docs/apps/website.md) ; aucune page n'est encore publiée. La première projection — page d'accueil avec le tableau d'état de la constellation et comparaisons datées — est le livrable de la phase γ 3.6.
+- Situation actuelle : Le publieur statique rend la page d'accueil (tableau d'état de la constellation depuis la projection fleet-status épinglée) et les huit comparaisons datées, chaîne verte en CI réelle ; le CDC complet (docs/apps/website.md, migré du hub) reste à servir.
 - Maturité : specified
 - Exposition : spec-published
 - Confiance : medium
 - Preuves vérifiées le : 2026-07-30
-- Avancement : 0 % du périmètre actuellement déclaré
+- Avancement : 50 % du périmètre actuellement déclaré
 
 <!-- libre-ai:project-status:end -->
 
