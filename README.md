@@ -109,3 +109,19 @@ Licences are declared per path through [`REUSE.toml`](REUSE.toml):
 - EUPL-1.2 — the workflows under `.github/` and the repository configuration
 
 Full licence texts are in [`LICENSES/`](LICENSES). Copyright (c) 2026 Libre AI contributors. The canonical licensing policy is [libre-ai/libre-ai/LICENSING.md](https://github.com/libre-ai/libre-ai/blob/main/LICENSING.md).
+
+## État du projet
+
+<!-- libre-ai:project-status:begin -->
+<!-- Section générée depuis project.v1.yaml — ne pas éditer à la main. -->
+
+- Situation actuelle : Repo activé de fait (sept pull requests de gouvernance mergées), CDC verrouillé (docs/apps/website.md) ; aucune page n'est encore publiée. La première projection — page d'accueil avec le tableau d'état de la constellation et comparaisons datées — est le livrable de la phase γ 3.6.
+- Maturité : specified
+- Exposition : spec-published
+- Confiance : medium
+- Preuves vérifiées le : 2026-07-30
+- Avancement : 0 % du périmètre actuellement déclaré
+
+<!-- libre-ai:project-status:end -->
+
+La fiche [`project.v1.yaml`](./project.v1.yaml) est l autorité de l état du projet ; cette section en est générée et le gate de flotte échoue si elles divergent.

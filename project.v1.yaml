@@ -1,0 +1,60 @@
+# Fiche d'état du projet — autorité de l'état depuis ADR-0020 (design §6.2).
+# La section statut du README est générée depuis cette fiche (sentinelles).
+schema_version: libre-ai.project.v1
+project: website
+repository: libre-ai/website
+kind: site
+layer: transverse
+statement:
+  for: "les lectrices et lecteurs qui veulent comprendre et vérifier Libre AI"
+  who_faces: "des vitrines de projets invérifiables, sans état réel ni sources"
+  enables: "lire l'état réel de chaque projet, ses limites et ses preuves, puis citer une URL stable"
+  producing:
+    - "une projection publique statique du savoir reviewé, des fiches d'état et des preuves"
+  without_depending_on:
+    - "aucun tracking, aucun compte, aucune mutation anonyme de contenu"
+summary: "Projection publique citable du savoir, des produits et des preuves reviewés — statique, sans tracking."
+current_situation: >-
+  Repo activé de fait (sept pull requests de gouvernance mergées), CDC
+  verrouillé (docs/apps/website.md) ; aucune page n'est encore publiée. La
+  première projection — page d'accueil avec le tableau d'état de la
+  constellation et comparaisons datées — est le livrable de la phase γ 3.6.
+scope:
+  - "page d'accueil : état des projets généré depuis les fiches (jamais déclaré)"
+  - "comparaisons factuelles datées et sourcées"
+  - "URLs stables et citables, flux machine (sitemap, Atom)"
+non_goals:
+  - "vérité produit rédigée dans l'interface"
+  - "comptes, commentaires, analytics ou tracking comportemental"
+  - "CMS ou prévisualisation de brouillons sur les origines publiques"
+dependencies:
+  - on: libre-ai/governance
+    why: "projection fleet-status générée depuis les fiches de la constellation"
+    pinned: "git-dep épinglée par SHA dans le manifest de ce repo"
+maturity: specified
+confidence: medium
+exposure: spec-published
+freshness:
+  last_verified_on: "2026-07-30"
+scope_stability: stable
+benchmark:
+  none: "n/a — projection publique propre, pas une cible de parité externe"
+phases:
+  - id: first-projection
+    title: Première projection publique (γ 3.6)
+    exit_criteria:
+      - id: homepage-table
+        text: "La page d'accueil publie le tableau « état des projets » généré depuis la projection fleet-status, sans pourcentage manuel."
+        weight: 3
+        status: pending
+      - id: dated-comparisons
+        text: "Les huit comparaisons datées et sourcées sont publiées avec leur date de vérification."
+        weight: 2
+        status: pending
+  - id: cdc
+    title: CDC complet (publication statique vérifiable)
+    exit_criteria:
+      - id: cdc-journeys
+        text: "Les parcours du CDC (comprendre, vérifier, contribuer, découvrir) sont servis par le publieur statique."
+        weight: 5
+        status: pending
