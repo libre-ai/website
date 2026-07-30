@@ -17,3 +17,10 @@ path = [".github/**", ".gitignore", ".env.example"]
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Libre AI contributors"
 SPDX-License-Identifier = "EUPL-1.2"
+
+# Project state card (γ 3.6) — same licence as the repository doctrine.
+[[annotations]]
+path = ["project.v1.yaml"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Libre AI contributors"
+SPDX-License-Identifier = "EUPL-1.2"
