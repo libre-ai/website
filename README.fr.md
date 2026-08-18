@@ -1,8 +1,7 @@
 [English](README.md) · **Français**
 
 > [!NOTE]
-> **Réservé · futur foyer de Website** — reconstruit dans le dépôt de base canonique [`libre-ai/libre-ai`](https://github.com/libre-ai/libre-ai) ([topologie multi-dépôts, ADR-0008](https://github.com/libre-ai/libre-ai/blob/main/docs/adr/0008-multi-repo-target-topology-and-brand.md)).
-> Ce dépôt rouvrira comme dépôt produit réel lorsque le propriétaire l'activera, consommant la base comme dépendance versionnée. Les fondations décrites ci-dessous sont **en cours de construction** — avec des liens vers le code qui existe déjà.
+> **Application active, régularisée par signature propriétaire.** Ce dépôt s'est activé de fait — sept pull requests mergées avant tout acte propriétaire — et [ADR-0020](https://github.com/libre-ai/governance/blob/main/docs/adr/0020-general-activation-and-hub-dismantling.md) §2.4 régularise cette activation nominativement : la signature de l'ADR _est_ l'acte. Le publieur statique construit déjà la page d'accueil et les huit comparaisons datées à partir du code de ce dépôt, chaîne verte en CI (voir `project.v1.yaml`). Il n'est pas encore déployé sur une URL publique, et le CDC complet (`docs/apps/website.md`) — les parcours lecteurs restants — reste à servir.
 
 # Website
 
@@ -18,26 +17,26 @@ Le cas canonique auquel il répond : _« donner au public un accès en lecture s
 - **Citable et sourcé.** Chaque affirmation porte son auteur, son assistance, ses sources, sa date d'examen et son historique de corrections. Les lecteurs exportent, citent et vérifient avant utilisation.
 - **Accessible par conception.** Le HTML sémantique fonctionne sans JavaScript. Clavier, zoom 200/400 %, mouvement réduit, contraste élevé et trois moteurs de navigateur sont testés. L'échec de la recherche laisse un plan du site navigable.
 
-## État — spécifié publiquement, fondations en construction
+## État — spécifié, première projection construite et chaîne verte en CI
 
-Website est reconstruit à partir de contrats verrouillés. Il **n'est pas encore publié** ; la compilation statique et le cœur de projection viennent d'abord, et une bonne part existe déjà et est prouvée dans le dépôt de base :
+La phase de première projection de Website (γ 3.6) est **acceptée** : le tableau de la page d'accueil (généré depuis la projection fleet-status épinglée, jamais déclaré à la main) et les huit comparaisons datées se construisent et passent en CI dans ce dépôt — voir `project.v1.yaml` et la preuve d'exécution qu'elle cite. Le CDC complet (parcours comprendre, vérifier, contribuer, découvrir) reste en attente, et rien n'est encore déployé sur une URL publique :
 
-| Fondation                                                                   | État          | Preuve                                                                                                                                                                          |
-| --------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Suite de contrats** — Knowledge Object, Public Projection, Feeds          | ✅ verrouillé | CDC approuvé et fusionné ; schémas canoniques sous `contracts/schemas/` ([#209](https://github.com/libre-ai/libre-ai/pull/209))                                                 |
-| **Compilateur de corpus** — sélection, validation et dédupliquage           | ✅ défini     | Matrice de refus, logique de validation, schéma d'événement ([`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md))                     |
-| **Modèle statique** — coque Bun.serve accessible                            | ✅ conçu      | Sémantique HTML, tokens CSS, clavier/zoom/mouvement (conception verrouillée dans [`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md)) |
-| **Projection de route** — construction déterministe, feed et JSON recherche | ⏳ suite      | Instanciation de modèle Bun, indexation Pagefind, génération RSS/Atom                                                                                                           |
-| **Pipeline de publication** — source-validée → rendue → fumée               | ⏳ suite      | Constructions candidates, vérifications d'intégrité, gate d'approbation                                                                                                         |
-| **Gates navigateur et accessibilité** — Chromium/Firefox/WebKit             | ⏳ suite      | CSP, budget de requête distante zéro, clavier sans JS, tests de zoom et contraste                                                                                               |
+| Fondation                                                                   | État                             | Preuve                                                                                                                                                                                                                   |
+| --------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Suite de contrats** — Knowledge Object, Public Projection, Feeds          | ✅ verrouillé                    | CDC approuvé et fusionné ; schémas canoniques sous `contracts/schemas/` dans [`libre-ai/contracts`](https://github.com/libre-ai/contracts) ([PR #209 du hub](https://github.com/libre-ai/libre-ai/pull/209), historique) |
+| **Tableau de la page d'accueil** — généré depuis la projection fleet-status | ✅ construit, chaîne verte en CI | `src/build.ts` ; `project.v1.yaml` phase première projection, critère `homepage-table`, accepté                                                                                                                          |
+| **Huit comparaisons datées** — sourcées et datées                           | ✅ construit, chaîne verte en CI | `src/comparisons.ts` ; `project.v1.yaml` phase première projection, critère `dated-comparisons`, accepté                                                                                                                 |
+| **Parcours CDC complets** — comprendre, vérifier, contribuer, découvrir     | ⏳ en attente                    | [`docs/apps/website.md`](docs/apps/website.md) ; `project.v1.yaml` phase CDC, critère `cdc-journeys`, en attente                                                                                                         |
+| **Déploiement public** — une URL vivante accessible aux lecteurs            | ⏳ en attente                    | `dist/` se construit et est vérifié en CI ; pas encore publié nulle part                                                                                                                                                 |
+| **Gates navigateur et accessibilité** — Chromium/Firefox/WebKit             | ⏳ en attente                    | CSP, budget de requête distante zéro, clavier sans JS, tests de zoom et contraste                                                                                                                                        |
 
-Ce dépôt est réservé, non archivé : le README est tenu à jour, les issues sont désactivées, et aucun code produit n'y atterrit avant l'activation de la vague 4. **Aucune cible de référence** — ceci est la projection publique propre de l'organisation, non un objectif de parité contre le site d'un autre fournisseur. La mesure du succès est la projection complète, honnête et sans suivi du savoir examiné.
+Ce dépôt est actif (ADR-0020 §2.4), ni réservé ni archivé ; le README est tenu à jour, et les pull requests atterrissent directement ici (les issues sont désactivées). **Aucune cible de référence** — ceci est la projection publique propre de l'organisation, non un objectif de parité contre le site d'un autre fournisseur. La mesure du succès est la projection complète, honnête et sans suivi du savoir examiné.
 
 ## Ce qu'il projette
 
 Website consomme :
 
-- **Corpus du hub** — objets de savoir examinés sous `ecosystem/` et `contracts/` dans le dépôt de base.
+- **Corpus de la flotte** — objets de savoir examinés sous `ecosystem/` dans [`libre-ai/governance`](https://github.com/libre-ai/governance) et `contracts/` dans [`libre-ai/contracts`](https://github.com/libre-ai/contracts).
 - **Projections de produit** — capacité et état pour chaque produit de l'inventaire (`docs/apps/*.md`).
 - **Preuve de forge** — auteur, dates d'examen, états d'approbation et enregistrements de corrections de Git.
 
@@ -72,14 +71,16 @@ L'hôte qui autorise passe les octets d'instantané canoniques au moteur de rend
 
 ## Où se déroule le travail
 
-Tout le développement actif est dans le dépôt de base, sous :
+Le développement actif est dans ce dépôt :
 
-- `apps/website` — le modèle statique, la CLI de publication et la coque du serveur (à créer).
-- `contracts/schemas/` — définitions de Knowledge Object, Public Projection et Correction Record.
-- `ecosystem/repositories.v1.yaml` — l'inventaire de produits canonique et les états d'exposition.
-- `docs/apps/website.md` — le cahier des charges complet du produit.
+- `src/build.ts`, `src/comparisons.ts` — le modèle statique et le compilateur de comparaisons.
+- `dist/` — la sortie construite en CI, adressée par contenu (`index.html`, `comparaisons.html`).
+- `docs/apps/website.md` — le cahier des charges complet du produit, migré du hub (désormais archivé).
+- `project.v1.yaml` — la fiche d'état qui fait autorité ; la section générée ci-dessous n'en diverge jamais.
 
-Pour suivre l'avancement ou contribuer, ouvrez issues et pull requests dans [`libre-ai/libre-ai`](https://github.com/libre-ai/libre-ai). Ce dépôt reste réservé jusqu'à son activation.
+Les contrats restent canoniques dans [`libre-ai/contracts`](https://github.com/libre-ai/contracts) (Knowledge Object, Public Projection, Correction Record), et la projection fleet-status est épinglée depuis [`libre-ai/governance`](https://github.com/libre-ai/governance) — ce dépôt consomme les deux, il ne les duplique pas.
+
+Pour suivre l'avancement ou contribuer, ouvrez des pull requests directement dans `libre-ai/website` (les issues sont désactivées).
 
 ## Non-objectifs et refus
 

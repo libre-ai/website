@@ -1,8 +1,7 @@
 **English** · [Français](README.fr.md)
 
 > [!NOTE]
-> **Reserved · future home of Website** — rebuilt in the canonical base repository [`libre-ai/libre-ai`](https://github.com/libre-ai/libre-ai) ([multi-repo topology, ADR-0008](https://github.com/libre-ai/libre-ai/blob/main/docs/adr/0008-multi-repo-target-topology-and-brand.md)).
-> This repository will reopen as the real product repository when the owner activates it, consuming the base as a versioned dependency. The foundations described below are **being built now** — with links to the code that already exists.
+> **Active application, regularized by owner signature.** This repository activated de facto — seven pull requests merged before any owner act — and [ADR-0020](https://github.com/libre-ai/governance/blob/main/docs/adr/0020-general-activation-and-hub-dismantling.md) §2.4 regularizes that activation nominatively: the ADR's signature _is_ the act. The static publisher already builds the homepage and eight dated comparisons from the code in this repository, CI green (see `project.v1.yaml`). It is not yet deployed to a public URL, and the full CDC (`docs/apps/website.md`) — the remaining reader journeys — is still to be served.
 
 # Website
 
@@ -18,26 +17,26 @@ The canonical brief it answers: _"give the public read-only access to current pr
 - **Citable and sourced.** Every claim carries authorship, assistance, sources, review date and correction history. Readers export, cite and verify before use.
 - **Accessible by design.** Semantic HTML works without JavaScript. Keyboard, zoom 200/400%, reduced motion, high contrast and three browser engines are tested. Search failure leaves a navigable sitemap.
 
-## Status — spec-published, foundations under construction
+## Status — specified, first projection built and CI-green
 
-Website is being rebuilt from locked contracts. It is **not released yet**; the static compilation and projection core come first, and a good part of it already exists and is proven in the base repository:
+Website's first-projection phase (γ 3.6) is **accepted**: the homepage table (generated from the pinned fleet-status projection, never hand-declared) and the eight dated comparisons build and pass CI in this repository — see `project.v1.yaml` and the run evidence it cites. The full CDC (understand, verify, contribute, discover journeys) remains pending, and nothing here is deployed to a public URL yet:
 
-| Foundation                                                       | State       | Evidence                                                                                                                                                          |
-| ---------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Contract suite** — Knowledge Object, Public Projection, Feeds  | ✅ locked   | CDC approved and merged; canonical schemas under `contracts/schemas/` ([#209](https://github.com/libre-ai/libre-ai/pull/209))                                     |
-| **Corpus compiler** — select, validate and de-duplicate content  | ✅ defined  | Refusal matrix, validation logic, event schema ([`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md))                    |
-| **Static template** — accessible Bun.serve shell                 | ✅ designed | HTML semantics, CSS tokens, keyboard/zoom/motion (design locked in [`docs/apps/website.md`](https://github.com/libre-ai/libre-ai/blob/main/docs/apps/website.md)) |
-| **Route projection** — deterministic build, feed and search JSON | ⏳ next     | Bun template instantiation, Pagefind indexing, RSS/Atom generation                                                                                                |
-| **Publication pipeline** — source-validated → rendered → smoke   | ⏳ next     | Candidate builds, integrity checks, approval gate                                                                                                                 |
-| **Browser and accessibility gates** — Chromium/Firefox/WebKit    | ⏳ next     | CSP, remote-request budget zero, no-JS keyboard, zoom and contrast tests                                                                                          |
+| Foundation                                                       | State              | Evidence                                                                                                                                                                                                          |
+| ---------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Contract suite** — Knowledge Object, Public Projection, Feeds  | ✅ locked          | CDC approved and merged; canonical schemas under `contracts/schemas/` in [`libre-ai/contracts`](https://github.com/libre-ai/contracts) ([hub PR #209](https://github.com/libre-ai/libre-ai/pull/209), historical) |
+| **Homepage table** — generated from the fleet-status projection  | ✅ built, CI-green | `src/build.ts`; `project.v1.yaml` first-projection phase, criterion `homepage-table`, accepted                                                                                                                    |
+| **Eight dated comparisons** — sourced and dated                  | ✅ built, CI-green | `src/comparisons.ts`; `project.v1.yaml` first-projection phase, criterion `dated-comparisons`, accepted                                                                                                           |
+| **Full CDC journeys** — understand, verify, contribute, discover | ⏳ pending         | [`docs/apps/website.md`](docs/apps/website.md); `project.v1.yaml` cdc phase, criterion `cdc-journeys`, pending                                                                                                    |
+| **Public deployment** — a live URL readers can browse            | ⏳ pending         | `dist/` builds and is verified in CI; not yet published anywhere                                                                                                                                                  |
+| **Browser and accessibility gates** — Chromium/Firefox/WebKit    | ⏳ pending         | CSP, remote-request budget zero, no-JS keyboard, zoom and contrast tests                                                                                                                                          |
 
-This repository is reserved, not archived: the README is kept current, issues are disabled, and no product code lands here until wave 4 activation. **No benchmark target** — this is the organization's own public projection, not a parity goal against another vendor's site. The measure of success is complete, honest, tracking-free projection of reviewed knowledge.
+This repository is active (ADR-0020 §2.4), not reserved and not archived; the README is kept current, and pull requests land here directly (issues are disabled). **No benchmark target** — this is the organization's own public projection, not a parity goal against another vendor's site. The measure of success is complete, honest, tracking-free projection of reviewed knowledge.
 
 ## What it projects
 
 Website consumes:
 
-- **Hub corpus** — reviewed knowledge objects under `ecosystem/` and `contracts/` in the base repository.
+- **Fleet corpus** — reviewed knowledge objects under `ecosystem/` in [`libre-ai/governance`](https://github.com/libre-ai/governance) and `contracts/` in [`libre-ai/contracts`](https://github.com/libre-ai/contracts).
 - **Product projections** — capability and state for each product from the inventory (`docs/apps/*.md`).
 - **Forge evidence** — authorship, review dates, approval states and correction records from Git.
 
@@ -72,14 +71,16 @@ The authorizing host passes canonical snapshot bytes to the renderer; the render
 
 ## Where the work happens
 
-All active development is in the base repository, under:
+Active development is in this repository:
 
-- `apps/website` — the static template, publication CLI and server shell (to be scaffolded).
-- `contracts/schemas/` — Knowledge Object, Public Projection and Correction Record definitions.
-- `ecosystem/repositories.v1.yaml` — the authoritative product inventory and exposure states.
-- `docs/apps/website.md` — the full product brief.
+- `src/build.ts`, `src/comparisons.ts` — the static template and comparisons compiler.
+- `dist/` — the CI-built, content-addressed output (`index.html`, `comparaisons.html`).
+- `docs/apps/website.md` — the full product brief, migrated from the (now archived) hub.
+- `project.v1.yaml` — the authoritative state card; the generated section below never drifts from it.
 
-To follow progress or contribute, open issues and pull requests in [`libre-ai/libre-ai`](https://github.com/libre-ai/libre-ai). This repository stays reserved until activation.
+Contracts stay canonical in [`libre-ai/contracts`](https://github.com/libre-ai/contracts) (Knowledge Object, Public Projection, Correction Record), and the fleet-status projection is pinned from [`libre-ai/governance`](https://github.com/libre-ai/governance) — this repository consumes both, it does not fork them.
+
+To follow progress or contribute, open pull requests directly in `libre-ai/website` (issues are disabled).
 
 ## Non-goals and refusals
 
