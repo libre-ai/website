@@ -6,7 +6,9 @@ import { validProjection } from "./test-fixtures";
 const fleetRows: FleetRow[] = [
   {
     repository: "libre-ai/notebook",
-    project: "Libre AI Notebook",
+    project: "notebook",
+    publicName: "Libre AI Notebook",
+    kind: "product",
     layer: "couche-1",
     summary: "Espace de connaissances local.",
     display: "20 % du périmètre actuellement déclaré",
@@ -27,6 +29,9 @@ describe("static brand templates", () => {
       html.indexOf("Possédez la fabrique."),
     );
     expect(html.indexOf("Possédez la fabrique.")).toBeLessThan(html.indexOf("Voir les preuves."));
+    expect(html).toContain("Fabrique ouverte de logiciels d’IA");
+    expect(html).toContain("Content-Security-Policy");
+    expect(html).toContain("Aucun tracking");
     for (const id of ["preuves", "produits", "methode", "etat-complet"]) {
       expect(html).toContain(`id="${id}"`);
     }

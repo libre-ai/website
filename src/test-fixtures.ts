@@ -23,6 +23,12 @@ export const validProjection = {
       secondaryCta: "See the evidence.",
     },
   },
+  products: [
+    {
+      repository: "libre-ai/notebook",
+      publicName: "Libre AI Notebook",
+    },
+  ],
   proofs: [
     {
       claim: "Logiciels ouverts",

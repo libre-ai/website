@@ -4,6 +4,7 @@ import {
   escapeHtml,
   findExecutableMarkup,
   findRemoteAssetReferences,
+  requireAllowedPublicHttpsUrl,
   requirePublicHttpsUrl,
 } from "./security";
 
@@ -20,6 +21,16 @@ describe("public URL boundary", () => {
       expect(() => requirePublicHttpsUrl(value)).toThrow("brand.public_https_url_required");
     }
   });
+
+  test("restricts governed proof links to the declared authority hosts", () => {
+    const allowed = new Set(["github.com"]);
+    expect(requireAllowedPublicHttpsUrl("https://github.com/libre-ai", allowed).hostname).toBe(
+      "github.com",
+    );
+    expect(() => requireAllowedPublicHttpsUrl("https://tracker.invalid/libre-ai", allowed)).toThrow(
+      "brand.public_host_not_allowed",
+    );
+  });
 });
 
 describe("static output guards", () => {
@@ -32,6 +43,12 @@ describe("static output guards", () => {
     expect(findRemoteAssetReferences(html)).toEqual(["https://tracker.invalid/x.png"]);
     expect(findRemoteAssetReferences(css)).toEqual(["https://tracker.invalid/x.png"]);
     expect(findRemoteAssetReferences(importedCss)).toEqual(["https://tracker.invalid/theme.css"]);
+    expect(findRemoteAssetReferences('<img src="//tracker.invalid/x.png">')).toEqual([
+      "//tracker.invalid/x.png",
+    ]);
+    expect(findRemoteAssetReferences('.hero{background:url("//tracker.invalid/x.png")}')).toEqual([
+      "//tracker.invalid/x.png",
+    ]);
   });
 
   test("reports executable and embedding surfaces", () => {
@@ -40,6 +57,8 @@ describe("static output guards", () => {
       "<iframe></iframe>",
       "<form></form>",
       "<foreignObject></foreignObject>",
+      "<object></object>",
+      "<embed>",
       '<div onclick="run()"></div>',
     ]) {
       expect(findExecutableMarkup(markup)).not.toEqual([]);

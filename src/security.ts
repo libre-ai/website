@@ -20,23 +20,34 @@ export function requirePublicHttpsUrl(value: string): URL {
   return url;
 }
 
+export function requireAllowedPublicHttpsUrl(
+  value: string,
+  allowedHosts: ReadonlySet<string>,
+): URL {
+  const url = requirePublicHttpsUrl(value);
+  if (!allowedHosts.has(url.hostname)) throw new Error("brand.public_host_not_allowed");
+  return url;
+}
+
 export function findRemoteAssetReferences(htmlOrCss: string): readonly string[] {
   const matches: string[] = [];
-  for (const match of htmlOrCss.matchAll(/\bsrc\s*=\s*["'](https?:\/\/[^"']+)["']/gi)) {
+  for (const match of htmlOrCss.matchAll(/\bsrc\s*=\s*["']((?:https?:)?\/\/[^"']+)["']/gi)) {
     const value = match[1];
     if (value !== undefined) matches.push(value);
   }
   for (const match of htmlOrCss.matchAll(
-    /<link\b[^>]*\bhref\s*=\s*["'](https?:\/\/[^"']+)["'][^>]*>/gi,
+    /<link\b[^>]*\bhref\s*=\s*["']((?:https?:)?\/\/[^"']+)["'][^>]*>/gi,
   )) {
     const value = match[1];
     if (value !== undefined) matches.push(value);
   }
-  for (const match of htmlOrCss.matchAll(/url\s*\(\s*["']?(https?:\/\/[^)'"\s]+)["']?\s*\)/gi)) {
+  for (const match of htmlOrCss.matchAll(
+    /url\s*\(\s*["']?((?:https?:)?\/\/[^)'"\s]+)["']?\s*\)/gi,
+  )) {
     const value = match[1];
     if (value !== undefined) matches.push(value);
   }
-  for (const match of htmlOrCss.matchAll(/@import\s+["'](https?:\/\/[^"']+)["']/gi)) {
+  for (const match of htmlOrCss.matchAll(/@import\s+["']((?:https?:)?\/\/[^"']+)["']/gi)) {
     const value = match[1];
     if (value !== undefined) matches.push(value);
   }
@@ -49,6 +60,8 @@ export function findExecutableMarkup(html: string): readonly string[] {
     ["iframe", /<iframe\b/i],
     ["form", /<form\b/i],
     ["foreignObject", /<foreignObject\b/i],
+    ["object", /<object\b/i],
+    ["embed", /<embed\b/i],
     ["event-handler", /\son[a-z]+\s*=/i],
   ] as const;
   return checks.filter(([, pattern]) => pattern.test(html)).map(([label]) => label);

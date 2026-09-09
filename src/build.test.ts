@@ -9,6 +9,7 @@ const status = {
     {
       repository: "libre-ai/notebook",
       project: "notebook",
+      kind: "product",
       layer: "couche-1",
       summary: "Espace de connaissances local.",
       display: "20 % du périmètre actuellement déclaré",
@@ -59,6 +60,17 @@ describe("buildStaticBrandSite", () => {
     expect(files.get("marque.html")).toContain("Les actifs figuratifs ne sont pas encore publiés.");
     expect(files.get("assets/styles.css")).toContain("var(--lai-color-accent)");
     expect(files.has("assets/libre-ai-mark.svg")).toBe(false);
+    expect(files.get("index.html")).toContain("Content-Security-Policy");
+    expect(
+      buildStaticBrandSite({
+        brandProjection: validProjection,
+        fleetStatus: status,
+        uiStyles: '@import "./tokens.css"; body { color: var(--lai-color-ink); }',
+        uiTokens: ":root { --lai-color-ink: CanvasText; }",
+        figurativeAssetsApproved: false,
+        brandMark: null,
+      }),
+    ).toEqual(files);
   });
 
   test("rejects remote or executable upstream assets", () => {
@@ -74,6 +86,13 @@ describe("buildStaticBrandSite", () => {
       buildStaticBrandSite({
         ...base,
         uiStyles: '.x { background: url("https://tracker.invalid/x.png"); }',
+      }),
+    ).toThrow("brand.output_remote_asset");
+
+    expect(() =>
+      buildStaticBrandSite({
+        ...base,
+        uiStyles: '.x { background: url("//tracker.invalid/x.png"); }',
       }),
     ).toThrow("brand.output_remote_asset");
   });

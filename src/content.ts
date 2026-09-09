@@ -30,10 +30,13 @@ function date(value: unknown, error: string): string {
   return candidate;
 }
 
-function parseFleetStatus(value: unknown): readonly FleetRow[] {
+type FleetProjectionRow = Omit<FleetRow, "publicName">;
+
+function parseFleetStatus(value: unknown): readonly FleetProjectionRow[] {
   const input = record(value, "brand.fleet_status_invalid");
   if (!Array.isArray(input.rows)) throw new Error("brand.fleet_rows_invalid");
-  const rows = input.rows.map((value, index): FleetRow => {
+  if (input.rows.length === 0) throw new Error("brand.fleet_rows_empty");
+  return input.rows.map((value, index): FleetProjectionRow => {
     const row = record(value, `brand.fleet_row_invalid:${index}`);
     const repository = string(row.repository, `brand.fleet_row_invalid:${index}:repository`);
     if (!/^libre-ai\/[a-z0-9-]+$/.test(repository)) {
@@ -42,6 +45,7 @@ function parseFleetStatus(value: unknown): readonly FleetRow[] {
     return {
       repository,
       project: string(row.project, `brand.fleet_row_invalid:${index}:project`),
+      kind: string(row.kind, `brand.fleet_row_invalid:${index}:kind`),
       layer: string(row.layer, `brand.fleet_row_invalid:${index}:layer`),
       summary: string(row.summary, `brand.fleet_row_invalid:${index}:summary`),
       display: string(row.display, `brand.fleet_row_invalid:${index}:display`),
@@ -52,10 +56,23 @@ function parseFleetStatus(value: unknown): readonly FleetRow[] {
       ),
     };
   });
-  groupFleetRows(rows);
-  return rows;
 }
 
-export function parseWebsiteContent(brand: unknown, fleetStatus: unknown): WebsiteContent {
-  return { brand: parseBrandProjection(brand), fleetRows: parseFleetStatus(fleetStatus) };
+export function parseWebsiteContent(brandValue: unknown, fleetStatus: unknown): WebsiteContent {
+  const brand = parseBrandProjection(brandValue);
+  const productNames = new Map(
+    brand.products.map(({ repository, publicName }) => [repository, publicName]),
+  );
+  const fleetRows = parseFleetStatus(fleetStatus).map((row): FleetRow => {
+    const productName = productNames.get(row.repository);
+    if (row.kind === "product" && productName === undefined) {
+      throw new Error(`brand.product_name_missing:${row.repository}`);
+    }
+    return {
+      ...row,
+      publicName: productName ?? row.project,
+    };
+  });
+  groupFleetRows(fleetRows);
+  return { brand, fleetRows };
 }

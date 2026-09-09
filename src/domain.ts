@@ -1,4 +1,4 @@
-import { requirePublicHttpsUrl } from "./security";
+import { requireAllowedPublicHttpsUrl } from "./security";
 
 export interface PublicBrandCopy {
   readonly tension: string;
@@ -18,6 +18,11 @@ export interface PublicProof {
   readonly limitation: string;
 }
 
+export interface PublicProductName {
+  readonly repository: string;
+  readonly publicName: string;
+}
+
 export interface PublicBrandProjection {
   readonly schema_version: "libre-ai.public-brand.v1";
   readonly generated_from: readonly [
@@ -26,6 +31,7 @@ export interface PublicBrandProjection {
     "brand/proof-matrix.md",
   ];
   readonly copy: { readonly fr: PublicBrandCopy; readonly en: PublicBrandCopy };
+  readonly products: readonly PublicProductName[];
   readonly proofs: readonly PublicProof[];
 }
 
@@ -40,6 +46,8 @@ export interface Evidence {
 export interface FleetRow {
   readonly repository: string;
   readonly project: string;
+  readonly publicName: string;
+  readonly kind: string;
   readonly layer: string;
   readonly summary: string;
   readonly display: string;
@@ -55,6 +63,8 @@ const canonicalLayers = [
   "transverse",
   "moyeu",
 ] as const;
+
+const PUBLIC_BRAND_SOURCE_HOSTS = new Set(["github.com"]);
 
 const canonicalFrenchCopy: PublicBrandCopy = {
   tension: "Les plateformes propriétaires vous louent le produit.",
@@ -122,6 +132,9 @@ export function parseBrandProjection(value: unknown): PublicBrandProjection {
     throw new Error("brand.projection_authority_invalid");
   }
   const copy = record(input.copy, "brand.copy_invalid");
+  if (!Array.isArray(input.products) || input.products.length === 0) {
+    throw new Error("brand.products_invalid");
+  }
   if (!Array.isArray(input.proofs) || input.proofs.length !== 3) {
     throw new Error("brand.proofs_invalid");
   }
@@ -131,6 +144,29 @@ export function parseBrandProjection(value: unknown): PublicBrandProjection {
       throw new Error(`brand.copy_canonical_drift:fr:${key}`);
     }
   }
+  const productRepositories = new Set<string>();
+  const products = input.products.map((value, index): PublicProductName => {
+    const product = record(value, `brand.product_invalid:${index}`);
+    const repository = nonEmptyString(
+      product.repository,
+      `brand.product_invalid:${index}:repository`,
+    );
+    if (!/^libre-ai\/[a-z0-9-]+$/.test(repository)) {
+      throw new Error(`brand.product_invalid:${index}:repository`);
+    }
+    if (productRepositories.has(repository)) {
+      throw new Error(`brand.product_duplicate:${repository}`);
+    }
+    productRepositories.add(repository);
+    const publicName = nonEmptyString(
+      product.publicName,
+      `brand.product_invalid:${index}:publicName`,
+    );
+    if (!publicName.startsWith("Libre AI ")) {
+      throw new Error(`brand.product_invalid:${index}:publicName`);
+    }
+    return { repository, publicName };
+  });
   const claims = new Set<string>();
   const proofs = input.proofs.map((value, index): PublicProof => {
     const proof = record(value, `brand.proof_invalid:${index}`);
@@ -138,7 +174,7 @@ export function parseBrandProjection(value: unknown): PublicBrandProjection {
     if (claims.has(claim)) throw new Error(`brand.proof_duplicate:${claim}`);
     claims.add(claim);
     const source = nonEmptyString(proof.source, `brand.proof_invalid:${index}:source`);
-    requirePublicHttpsUrl(source);
+    requireAllowedPublicHttpsUrl(source, PUBLIC_BRAND_SOURCE_HOSTS);
     return {
       claim,
       mechanism: nonEmptyString(proof.mechanism, `brand.proof_invalid:${index}:mechanism`),
@@ -152,6 +188,7 @@ export function parseBrandProjection(value: unknown): PublicBrandProjection {
     schema_version: "libre-ai.public-brand.v1",
     generated_from: ["brand/README.md", "brand/README.en.md", "brand/proof-matrix.md"],
     copy: { fr: frenchCopy, en: parseCopy(copy.en, "en") },
+    products,
     proofs,
   };
 }
@@ -177,5 +214,8 @@ export function groupFleetRows(
 }
 
 export function toEvidence(proof: PublicProof): Evidence {
-  return { ...proof, source: requirePublicHttpsUrl(proof.source) };
+  return {
+    ...proof,
+    source: requireAllowedPublicHttpsUrl(proof.source, PUBLIC_BRAND_SOURCE_HOSTS),
+  };
 }

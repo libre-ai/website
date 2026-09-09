@@ -32,6 +32,7 @@ function page(title: string, content: string): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; connect-src 'none'; font-src 'self'; form-action 'none'; frame-src 'none'; img-src 'self'; manifest-src 'none'; media-src 'none'; object-src 'none'; script-src 'none'; style-src 'self'; worker-src 'none'">
 <title>${escapeHtml(title)}</title>
 <link rel="stylesheet" href="./assets/styles.css">
 </head>
@@ -76,7 +77,7 @@ function renderProductCards(rows: readonly FleetRow[]): string {
   <div class="card-grid">${group
     .map((row) => {
       const source = requirePublicHttpsUrl(`https://github.com/${row.repository}`);
-      return `<article class="product-card lai-open-frame"><h4><a href="${escapeHtml(source.href)}">${escapeHtml(row.project)}</a></h4><p>${escapeHtml(row.summary)}</p><p><strong>${escapeHtml(row.maturity)}</strong> — ${escapeHtml(row.display)}</p></article>`;
+      return `<article class="product-card lai-open-frame"><h4><a href="${escapeHtml(source.href)}">${escapeHtml(row.publicName)}</a></h4><p>${escapeHtml(row.summary)}</p><p><strong>${escapeHtml(row.maturity)}</strong> — ${escapeHtml(row.display)}</p></article>`;
     })
     .join("")}</div>
 </section>`,
@@ -88,7 +89,7 @@ function renderFleetTable(rows: readonly FleetRow[]): string {
   const body = rows
     .map((row) => {
       const source = requirePublicHttpsUrl(`https://github.com/${row.repository}`);
-      return `<tr><th scope="row"><a href="${escapeHtml(source.href)}">${escapeHtml(row.project)}</a></th><td>${escapeHtml(layerLabels[row.layer] ?? row.layer)}</td><td>${escapeHtml(row.summary)}</td><td>${escapeHtml(row.display)}</td><td>${escapeHtml(row.maturity)}</td><td><time datetime="${escapeHtml(row.last_verified_on)}">${escapeHtml(row.last_verified_on)}</time></td></tr>`;
+      return `<tr><th scope="row"><a href="${escapeHtml(source.href)}">${escapeHtml(row.publicName)}</a></th><td>${escapeHtml(layerLabels[row.layer] ?? row.layer)}</td><td>${escapeHtml(row.summary)}</td><td>${escapeHtml(row.display)}</td><td>${escapeHtml(row.maturity)}</td><td><time datetime="${escapeHtml(row.last_verified_on)}">${escapeHtml(row.last_verified_on)}</time></td></tr>`;
     })
     .join("\n");
   return `<div class="table-scroll" tabindex="0"><table><thead><tr><th>Projet</th><th>Couche</th><th>Résumé</th><th>Avancement</th><th>Maturité</th><th>Vérifié le</th></tr></thead><tbody id="fleet-rows">${body}</tbody></table></div>`;
@@ -96,12 +97,17 @@ function renderFleetTable(rows: readonly FleetRow[]): string {
 
 export function renderHome(input: HomePageInput): string {
   const copy = input.brand.copy.fr;
+  const latestVerification = input.fleetRows
+    .map((row) => row.last_verified_on)
+    .sort()
+    .at(-1);
+  if (latestVerification === undefined) throw new Error("brand.fleet_rows_empty");
   const mark = input.figurativeAssetsApproved
     ? '<img class="brand-mark" src="./assets/libre-ai-mark.svg" alt="">'
     : "";
   const content = `
-<section class="hero lai-page">${mark}<p class="tension">${escapeHtml(copy.tension)}</p><h1>${escapeHtml(copy.promise)}</h1><p class="lede">${escapeHtml(copy.explanation)}</p><p class="qualification">${escapeHtml(copy.qualification)} ${escapeHtml(copy.reasonToBelieve)}</p><p class="actions"><a class="primary-action" href="#methode">${escapeHtml(copy.primaryCta)}</a> <a href="#preuves">${escapeHtml(copy.secondaryCta)}</a></p></section>
-<aside class="provenance lai-page" aria-label="Provenance">Doctrine, états et preuves proviennent de sources versionnées ; aucune promesse n'est déduite d'une maquette.</aside>
+<section class="hero lai-page">${mark}<p class="eyebrow">Fabrique ouverte de logiciels d’IA</p><p class="tension">${escapeHtml(copy.tension)}</p><h1>${escapeHtml(copy.promise)}</h1><p class="lede">${escapeHtml(copy.explanation)}</p><p class="qualification">${escapeHtml(copy.qualification)} ${escapeHtml(copy.reasonToBelieve)}</p><p class="actions"><a class="primary-action" href="#methode">${escapeHtml(copy.primaryCta)}</a> <a href="#preuves">${escapeHtml(copy.secondaryCta)}</a></p></section>
+<aside class="provenance lai-page" aria-label="Provenance">État généré depuis <code>fleet-status.v1.json</code> · vérification la plus récente : <time datetime="${escapeHtml(latestVerification)}">${escapeHtml(latestVerification)}</time> · Aucun tracking.</aside>
 <section class="section lai-page" id="preuves"><p class="section-index">01 / PREUVES</p><h2>Ne nous croyez pas. Vérifiez.</h2><div class="card-grid">${renderProofs(input.brand)}</div></section>
 <section class="section lai-page" id="produits"><p class="section-index">02 / PRODUITS</p><h2>Une gamme, pas une boîte noire.</h2>${renderProductCards(input.fleetRows)}</section>
 <section class="section lai-page" id="methode"><p class="section-index">03 / FABRIQUE</p><h2>Prenez les clés.</h2><ol class="factory"><li><strong>Décider</strong><span>Rendre les arbitrages explicites.</span></li><li><strong>Construire</strong><span>Composer des briques ouvertes.</span></li><li><strong>Vérifier</strong><span>Tester les affirmations et publier les limites.</span></li><li><strong>Publier</strong><span>Versionner les preuves avec le produit.</span></li></ol></section>

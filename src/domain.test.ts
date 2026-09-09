@@ -66,6 +66,8 @@ function fleetRow(repository: string, project: string, layer: string): FleetRow 
   return {
     repository,
     project,
+    publicName: project,
+    kind: "satellite",
     layer,
     summary: `${project} summary`,
     display: "20 % du périmètre actuellement déclaré",
