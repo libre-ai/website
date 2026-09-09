@@ -36,6 +36,10 @@ export function findRemoteAssetReferences(htmlOrCss: string): readonly string[] 
     const value = match[1];
     if (value !== undefined) matches.push(value);
   }
+  for (const match of htmlOrCss.matchAll(/@import\s+["'](https?:\/\/[^"']+)["']/gi)) {
+    const value = match[1];
+    if (value !== undefined) matches.push(value);
+  }
   return [...new Set(matches)];
 }
 

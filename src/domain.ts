@@ -56,6 +56,17 @@ const canonicalLayers = [
   "moyeu",
 ] as const;
 
+const canonicalFrenchCopy: PublicBrandCopy = {
+  tension: "Les plateformes propriétaires vous louent le produit.",
+  promise: "Possédez la fabrique.",
+  explanation:
+    "Libre AI réunit les logiciels, la méthode et les preuves pour construire des outils d'IA que vous pouvez vérifier, modifier et déployer où vous le décidez.",
+  qualification: "Ouverts, souverains et explicables.",
+  reasonToBelieve: "Conçus dans une fabrique ouverte où la preuve fait partie du produit.",
+  primaryCta: "Prenez les clés.",
+  secondaryCta: "Voir les preuves.",
+};
+
 function record(value: unknown, error: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) throw new Error(error);
   return value as Record<string, unknown>;
@@ -111,8 +122,14 @@ export function parseBrandProjection(value: unknown): PublicBrandProjection {
     throw new Error("brand.projection_authority_invalid");
   }
   const copy = record(input.copy, "brand.copy_invalid");
-  if (!Array.isArray(input.proofs) || input.proofs.length === 0) {
+  if (!Array.isArray(input.proofs) || input.proofs.length !== 3) {
     throw new Error("brand.proofs_invalid");
+  }
+  const frenchCopy = parseCopy(copy.fr, "fr");
+  for (const key of Object.keys(canonicalFrenchCopy) as (keyof PublicBrandCopy)[]) {
+    if (frenchCopy[key] !== canonicalFrenchCopy[key]) {
+      throw new Error(`brand.copy_canonical_drift:fr:${key}`);
+    }
   }
   const claims = new Set<string>();
   const proofs = input.proofs.map((value, index): PublicProof => {
@@ -134,7 +151,7 @@ export function parseBrandProjection(value: unknown): PublicBrandProjection {
   return {
     schema_version: "libre-ai.public-brand.v1",
     generated_from: ["brand/README.md", "brand/README.en.md", "brand/proof-matrix.md"],
-    copy: { fr: parseCopy(copy.fr, "fr"), en: parseCopy(copy.en, "en") },
+    copy: { fr: frenchCopy, en: parseCopy(copy.en, "en") },
     proofs,
   };
 }

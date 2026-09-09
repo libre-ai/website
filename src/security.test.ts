@@ -27,9 +27,11 @@ describe("static output guards", () => {
     const html =
       '<a href="https://github.com/libre-ai">Source</a><img src="https://tracker.invalid/x.png"><link href="./assets/styles.css" rel="stylesheet">';
     const css = '.hero{background:url("https://tracker.invalid/x.png")}';
+    const importedCss = '@import "https://tracker.invalid/theme.css";';
 
     expect(findRemoteAssetReferences(html)).toEqual(["https://tracker.invalid/x.png"]);
     expect(findRemoteAssetReferences(css)).toEqual(["https://tracker.invalid/x.png"]);
+    expect(findRemoteAssetReferences(importedCss)).toEqual(["https://tracker.invalid/theme.css"]);
   });
 
   test("reports executable and embedding surfaces", () => {

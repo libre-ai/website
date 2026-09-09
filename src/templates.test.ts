@@ -38,7 +38,9 @@ describe("static brand templates", () => {
 
   test("escapes projection strings instead of interpreting them as markup", () => {
     const hostile = structuredClone(validProjection);
-    hostile.copy.fr.explanation = '<img src="https://tracker.invalid/a.png">';
+    const [hostileProof] = hostile.proofs;
+    if (hostileProof === undefined) throw new Error("test.fixture_proof_missing");
+    hostileProof.mechanism = '<img src="https://tracker.invalid/a.png">';
     const html = renderHome({
       brand: parseBrandProjection(hostile),
       fleetRows,

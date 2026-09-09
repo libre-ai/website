@@ -19,13 +19,23 @@ describe("parseBrandProjection", () => {
     const mutations: unknown[] = [
       { ...validProjection, schema_version: "unknown" },
       { ...validProjection, copy: { ...validProjection.copy, fr: {} } },
+      {
+        ...validProjection,
+        copy: {
+          ...validProjection.copy,
+          fr: { ...validProjection.copy.fr, promise: "Une promesse modifiée." },
+        },
+      },
       { ...validProjection, proofs: [{ ...validProjection.proofs[0], verifiedOn: "09/09/2026" }] },
       {
         ...validProjection,
         proofs: [{ ...validProjection.proofs[0], source: "http://example.com" }],
       },
       { ...validProjection, proofs: [{ ...validProjection.proofs[0], limitation: "" }] },
-      { ...validProjection, proofs: [validProjection.proofs[0], validProjection.proofs[0]] },
+      {
+        ...validProjection,
+        proofs: [validProjection.proofs[0], validProjection.proofs[0], validProjection.proofs[2]],
+      },
     ];
 
     for (const mutation of mutations) expect(() => parseBrandProjection(mutation)).toThrow();

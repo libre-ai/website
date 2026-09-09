@@ -31,5 +31,19 @@ export const validProjection = {
       verifiedOn: "2026-09-09",
       limitation: "Un dépôt public ne prouve pas la disponibilité.",
     },
+    {
+      claim: "Souveraineté",
+      mechanism: "Choix d'hébergement et mécanismes de réversibilité publiés.",
+      source: "https://github.com/libre-ai/governance",
+      verifiedOn: "2026-09-09",
+      limitation: "Aucun déploiement non prouvé n'est présenté comme actif.",
+    },
+    {
+      claim: "Explicabilité",
+      mechanism: "Décisions, états et limites reliés à des sources versionnées.",
+      source: "https://github.com/libre-ai/governance",
+      verifiedOn: "2026-09-09",
+      limitation: "Toute sortie de modèle n'est pas causalement explicable.",
+    },
   ],
 };

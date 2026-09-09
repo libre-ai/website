@@ -28,7 +28,7 @@ Website's first-projection phase (γ 3.6) is **accepted**: the homepage table (g
 | **Eight dated comparisons** — sourced and dated                  | ✅ built, CI-green | `src/comparisons.ts`; `project.v1.yaml` first-projection phase, criterion `dated-comparisons`, accepted                                                                                                           |
 | **Full CDC journeys** — understand, verify, contribute, discover | ⏳ pending         | [`docs/apps/website.md`](docs/apps/website.md); `project.v1.yaml` cdc phase, criterion `cdc-journeys`, pending                                                                                                    |
 | **Public deployment** — a live URL readers can browse            | ⏳ pending         | `dist/` builds and is verified in CI; not yet published anywhere                                                                                                                                                  |
-| **Browser and accessibility gates** — Chromium/Firefox/WebKit    | ⏳ pending         | CSP, remote-request budget zero, no-JS keyboard, zoom and contrast tests                                                                                                                                          |
+| **Browser and accessibility gates** — Chromium/Firefox/WebKit    | 🧪 candidate green | Local unpublished brand preview: 25 passed, 5 redundant captures skipped; production integration still waits for reachable upstream SHAs                                                                          |
 
 This repository is active (ADR-0020 §2.4), not reserved and not archived; the README is kept current, and pull requests land here directly (issues are disabled). **No benchmark target** — this is the organization's own public projection, not a parity goal against another vendor's site. The measure of success is complete, honest, tracking-free projection of reviewed knowledge.
 
@@ -116,11 +116,11 @@ Full licence texts are in [`LICENSES/`](LICENSES). Copyright (c) 2026 Libre AI c
 <!-- libre-ai:project-status:begin -->
 <!-- Section générée depuis project.v1.yaml — ne pas éditer à la main. -->
 
-- Situation actuelle : Le publieur statique rend la page d'accueil (tableau d'état de la constellation depuis la projection fleet-status épinglée) et les huit comparaisons datées, chaîne verte en CI réelle ; le CDC complet (docs/apps/website.md, migré du hub) reste à servir.
+- Situation actuelle : Le publieur statique rend la page d'accueil historique et les huit comparaisons datées. Une refonte de marque statique, gardée et qualifiée dans trois moteurs existe en candidat local ; son activation attend des SHA Governance/UI publiés et examinés.
 - Maturité : specified
 - Exposition : spec-published
 - Confiance : medium
-- Preuves vérifiées le : 2026-07-30
+- Preuves vérifiées le : 2026-09-09
 - Avancement : 50 % du périmètre actuellement déclaré
 
 <!-- libre-ai:project-status:end -->

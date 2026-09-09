@@ -8,6 +8,66 @@
  * hold by construction.
  */
 import { COMPARISONS, VERIFIED_ON } from "./comparisons";
+import { parseWebsiteContent } from "./content";
+import { findExecutableMarkup, findRemoteAssetReferences } from "./security";
+import { renderSiteCss } from "./styles";
+import {
+  renderBrandGuide as renderBrandGuideTemplate,
+  renderComparisons as renderComparisonsTemplate,
+  renderHome as renderHomeTemplate,
+} from "./templates";
+
+export interface StaticBrandSiteInput {
+  readonly brandProjection: unknown;
+  readonly fleetStatus: unknown;
+  readonly uiStyles: string;
+  readonly uiTokens: string;
+  readonly figurativeAssetsApproved: boolean;
+  readonly brandMark: string | null;
+}
+
+export function buildStaticBrandSite(input: StaticBrandSiteInput): ReadonlyMap<string, string> {
+  const content = parseWebsiteContent(input.brandProjection, input.fleetStatus);
+  if (input.figurativeAssetsApproved && input.brandMark === null) {
+    throw new Error("brand.approved_mark_missing");
+  }
+
+  const files = new Map<string, string>([
+    [
+      "index.html",
+      renderHomeTemplate({
+        ...content,
+        figurativeAssetsApproved: input.figurativeAssetsApproved,
+      }),
+    ],
+    ["comparaisons.html", renderComparisonsTemplate({ verifiedOn: VERIFIED_ON })],
+    [
+      "marque.html",
+      renderBrandGuideTemplate({
+        brand: content.brand,
+        figurativeAssetsApproved: input.figurativeAssetsApproved,
+      }),
+    ],
+    ["assets/styles.css", `${input.uiStyles.trimEnd()}\n\n${renderSiteCss()}`],
+    ["assets/tokens.css", input.uiTokens],
+  ]);
+  if (input.figurativeAssetsApproved && input.brandMark !== null) {
+    files.set("assets/libre-ai-mark.svg", input.brandMark);
+  }
+
+  for (const [path, value] of files) {
+    if (findRemoteAssetReferences(value).length > 0) {
+      throw new Error(`brand.output_remote_asset:${path}`);
+    }
+    if (
+      (path.endsWith(".html") || path.endsWith(".svg")) &&
+      findExecutableMarkup(value).length > 0
+    ) {
+      throw new Error(`brand.output_executable_markup:${path}`);
+    }
+  }
+  return files;
+}
 
 interface FleetRow {
   readonly repository: string;
