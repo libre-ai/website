@@ -130,7 +130,7 @@ export function renderComparisons(input: ComparisonsPageInput): string {
 export function renderBrandGuide(input: BrandGuidePageInput): string {
   const copy = input.brand.copy.fr;
   const assets = input.figurativeAssetsApproved
-    ? '<h2>Martinet construit</h2><img class="brand-mark brand-mark--guide" src="./assets/libre-ai-mark.svg" alt="Libre AI"><p><a download href="./assets/libre-ai-mark.svg">Télécharger le SVG approuvé</a></p><p>Zone de protection : une largeur d’articulation autour du signe. Ne pas déformer, recolorer arbitrairement ou combiner jade et iris en dégradé.</p>'
+    ? '<h2>Portique d’atelier</h2><img class="brand-mark brand-mark--guide" src="./assets/libre-ai-mark.svg" alt="Libre AI"><p><a download href="./assets/libre-ai-mark.svg">Télécharger le SVG approuvé</a></p><p>Zone de protection : une largeur de montant du portique autour du signe. Ne pas fermer ou déformer le portique. Dans une déclinaison colorée, réserver le jade au bloc de contrôle. Ne jamais combiner jade et iris en dégradé.</p>'
     : '<h2>Actifs figuratifs</h2><p class="pending">Les actifs figuratifs ne sont pas encore publiés.</p><p>Le mot-symbole textuel « Libre AI » reste la seule identité publiable tant que la licence exacte et le dossier de similarité ne sont pas acceptés.</p>';
   return page(
     "Libre AI — Guide de marque",

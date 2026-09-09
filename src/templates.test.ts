@@ -63,6 +63,8 @@ describe("static brand templates", () => {
 
     expect(pending).toContain("Les actifs figuratifs ne sont pas encore publiés.");
     expect(pending).not.toContain("libre-ai-mark.svg");
+    expect(accepted).toContain("Portique d’atelier");
+    expect(accepted).not.toContain("Martinet construit");
     expect(accepted).toContain("./assets/libre-ai-mark.svg");
   });
 
