@@ -10,7 +10,10 @@ export type ContextErrorCode =
   | "UNSAFE_BINDING"
   | "WRONG_OWNER"
   | "WRONG_APP_TYPE"
-  | "WRONG_ZONE";
+  | "WRONG_ZONE"
+  | "UNSAFE_FILE_MODE"
+  | "FILE_IO_ERROR"
+  | "MALFORMED_JSON_FILE";
 
 export interface ContextError {
   code: ContextErrorCode;
