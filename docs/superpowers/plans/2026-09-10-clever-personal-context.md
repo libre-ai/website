@@ -34,9 +34,11 @@
 - Produces: `parseProfile(value: unknown): Result<CleverProfile, ContextError>`
 - Produces: `parsePolicy(value: unknown): Result<PersonalContextPolicy, ContextError>`
 - Produces: `parseBinding(value: unknown): Result<CleverBinding, ContextError>`
+- Produces: `parseRemoteApplications(value: unknown): Result<readonly RemoteApplication[], ContextError>`
 - Produces: `validateIdentity(profile, policy): Result<ValidatedIdentity, ContextError>`
 - Produces: `validateBinding(binding, identity): Result<ValidatedBinding, ContextError>`
 - Produces: `validateOptionalBinding(binding, identity): Result<ValidatedBinding | null, ContextError>`
+- Produces: `validateRemoteApplication(applications, identity): Result<RemoteApplication, ContextError>`
 - Produces: `redactContextError(error): string`
 
 - [ ] **Step 1: Add strict TypeScript and licence coverage for tools**
@@ -67,7 +69,7 @@ expect(validateIdentity(profile, policy)).toEqual({
 });
 ```
 
-Cover malformed input, mismatched email, invalid token, disabled 2FA, `ownerId !== userId`, an absent pre-creation binding, multiple bindings, wrong owner, non-static application, and unsafe aliases. Assert that rendered errors contain neither fixture email nor raw JSON.
+Cover malformed input, mismatched email, invalid token, disabled 2FA, `ownerId !== userId`, an absent pre-creation binding, multiple bindings, wrong owner, unsafe aliases, remote non-static applications, and remote applications outside Paris. Assert that rendered errors contain neither fixture email nor raw JSON.
 
 - [ ] **Step 3: Run the focused test and prove RED**
 
@@ -102,7 +104,7 @@ export interface PersonalContextPolicy {
 }
 ```
 
-Parse `unknown` with explicit object/key checks. Never interpolate rejected values into errors. `validateIdentity` must compare the exact email in memory, require token validity and 2FA, then require enrolled IDs when present. `validateOptionalBinding` accepts an absent binding before application creation; once a binding exists, `validateBinding` must accept exactly one `website-staging` static application owned by the validated user.
+Parse `unknown` with explicit object/key checks. Never interpolate rejected values into errors. `validateIdentity` must compare the exact email in memory, require token validity and 2FA, then require enrolled IDs when present. `validateOptionalBinding` accepts an absent binding before application creation; once a binding exists, `validateBinding` must accept exactly one `website-staging` application owned by the validated user with valid Clever HTTPS and SSH URLs. `validateRemoteApplication` independently requires the matching application to have type `static` and zone `par`, because Clever's local binding format carries neither field.
 
 - [ ] **Step 5: Run focused tests and prove GREEN**
 
