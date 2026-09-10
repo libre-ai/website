@@ -60,6 +60,6 @@ jobs:
       - name: Verify the exact Bun revision
         run: test "$(bun --revision)" = "1.4.0-canary.1+57f349f63"
       - name: Install pinned browser engines
-        run: bunx playwright install --with-deps chromium firefox webkit
+        run: bun node_modules/@playwright/test/cli.js install --with-deps chromium firefox webkit
       - name: Verify the production artifact in every qualified browser mode
         run: bun run test:e2e
