@@ -1,9 +1,12 @@
+import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
 
-const previewRoot = new URL("../.preview/", import.meta.url);
-const homeUrl = pathToFileURL(new URL("index.html", previewRoot).pathname).href;
-const brandGuideUrl = pathToFileURL(new URL("marque.html", previewRoot).pathname).href;
+const outputRoot = resolve(process.env.LIBRE_AI_WEBSITE_OUTPUT_ROOT ?? "dist");
+const homeUrl = pathToFileURL(join(outputRoot, "index.html")).href;
+const brandGuideUrl = pathToFileURL(join(outputRoot, "marque.html")).href;
+const starterQuickstartUrl =
+  "https://github.com/libre-ai/starter/blob/acccae671aa46419fce9d0b7ff7cbe2511f073a6/starter/README.md#d%C3%A9marrage-rapide";
 
 test("renders the canonical editorial journey and complete fleet", async ({ page }) => {
   await page.goto(homeUrl);
@@ -13,6 +16,13 @@ test("renders the canonical editorial journey and complete fleet", async ({ page
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Possédez la fabrique.");
   await expect(page.locator("#preuves article")).toHaveCount(3);
   expect(await page.locator("#fleet-rows tr").count()).toBeGreaterThan(0);
+  await expect(page.getByRole("link", { name: "Prenez les clés." })).toHaveAttribute(
+    "href",
+    starterQuickstartUrl,
+  );
+  await expect(
+    page.getByText("Démonstration exécutable, pas application prête pour la production."),
+  ).toBeVisible();
   await expect(page.locator("script")).toHaveCount(0);
 });
 

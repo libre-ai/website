@@ -15,10 +15,10 @@ statement:
     - "aucun tracking, aucun compte, aucune mutation anonyme de contenu"
 summary: "Projection publique citable du savoir, des produits et des preuves reviewés — statique, sans tracking."
 current_situation: >-
-  Le publieur statique rend la page d'accueil historique et les huit
-  comparaisons datées. Une refonte de marque statique, gardée et qualifiée
-  dans trois moteurs existe en candidat local ; son activation attend des SHA
-  Governance/UI publiés et examinés.
+  Le build de production rend la marque Libre AI, ses preuves, la flotte
+  complète, les comparaisons datées et un accès au starter exécutable. Le
+  mot-symbole reste seul publié : le signe figuratif est refusé tant que ses
+  contrôles ne sont pas acceptés. Aucun déploiement public n'est encore prouvé.
 scope:
   - "page d'accueil : état des projets généré depuis les fiches (jamais déclaré)"
   - "comparaisons factuelles datées et sourcées"
@@ -30,12 +30,18 @@ non_goals:
 dependencies:
   - on: libre-ai/governance
     why: "projection fleet-status générée depuis les fiches de la constellation"
-    pinned: "git-dep épinglée par SHA dans le manifest de ce repo"
+    pinned: "github:libre-ai/governance#9ac334cdf86cf05d126091f394d07c01d7745930"
+  - on: libre-ai/ui
+    why: "tokens et primitives visuelles de la projection publique"
+    pinned: "github:libre-ai/ui#99282032a9c71ca4c30efeb441329144ff95cbf8"
+  - on: libre-ai/starter
+    why: "démonstration exécutable reliée par le CTA principal"
+    pinned: "github:libre-ai/starter#acccae671aa46419fce9d0b7ff7cbe2511f073a6"
 maturity: specified
 confidence: medium
 exposure: spec-published
 freshness:
-  last_verified_on: "2026-09-09"
+  last_verified_on: "2026-09-10"
 scope_stability: stable
 benchmark:
   none: "n/a — projection publique propre, pas une cible de parité externe"
@@ -49,14 +55,14 @@ phases:
         status: accepted
         evidence:
           date: "2026-07-30"
-          reference: "run quality vert sur libre-ai/website@2f835223 (dist/index.html généré en CI)"
+          reference: "run quality vert au commit 2f835223 (dist/index.html généré en CI)"
       - id: dated-comparisons
         text: "Les huit comparaisons datées et sourcées sont publiées avec leur date de vérification."
         weight: 2
         status: accepted
         evidence:
           date: "2026-07-30"
-          reference: "run quality vert sur libre-ai/website@2f835223 (dist/comparaisons.html, 8 lignes sourcées)"
+          reference: "run quality vert au commit 2f835223 (dist/comparaisons.html, 8 lignes sourcées)"
   - id: cdc
     title: CDC complet (publication statique vérifiable)
     exit_criteria:
