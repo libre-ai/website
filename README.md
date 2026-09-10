@@ -82,6 +82,17 @@ Contracts stay canonical in [`libre-ai/contracts`](https://github.com/libre-ai/c
 
 To follow progress or contribute, open pull requests directly in `libre-ai/website` (issues are disabled).
 
+## Contributor checks
+
+Inside an activated Python virtual environment, install the JavaScript dependencies and the pinned
+REUSE requirements before running the aggregate gate:
+
+```sh
+bun install --frozen-lockfile
+python3 -m pip install --disable-pip-version-check --requirement node_modules/@libre-ai/governance/tools/licensing/requirements.txt
+bun run check
+```
+
 ## Non-goals and refusals
 
 Website deliberately **refuses** to:
