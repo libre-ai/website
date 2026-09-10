@@ -52,7 +52,7 @@ const validRemoteApplications = [
         createdAt: "2026-09-10T12:00:00.000Z",
         deploy_url: "https://app-staging-fixture.cleverapps.io",
         git_ssh_url: "git+ssh://git@push.par.clever-cloud.com/app_staging_fixture.git",
-        alias: "website-staging",
+        alias: "",
       },
     ],
   },
@@ -178,7 +178,7 @@ describe("personal Clever application policy", () => {
     expectErrorCode(remoteAsset, "MALFORMED_BINDING");
   });
 
-  test("validates the remote application type and Paris zone independently", () => {
+  test("accepts an unbound remote alias and validates type and Paris zone independently", () => {
     const profile = parseProfile(validProfile);
     const policy = parsePolicy(validPolicy);
     const applications = parseRemoteApplications(validRemoteApplications);

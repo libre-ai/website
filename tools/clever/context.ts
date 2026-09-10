@@ -13,7 +13,18 @@ export type ContextErrorCode =
   | "WRONG_ZONE"
   | "UNSAFE_FILE_MODE"
   | "FILE_IO_ERROR"
-  | "MALFORMED_JSON_FILE";
+  | "MALFORMED_JSON_FILE"
+  | "UNSAFE_ENVIRONMENT"
+  | "UNSUPPORTED_OPERATION"
+  | "COMMAND_ERROR"
+  | "MISSING_CONTEXT"
+  | "SSH_KEY_MISMATCH"
+  | "REMOTE_APP_CONFLICT"
+  | "DIRTY_REPOSITORY"
+  | "WRONG_REPOSITORY"
+  | "WRONG_BRANCH"
+  | "OUTDATED_MAIN"
+  | "QUALITY_GATE_FAILED";
 
 export interface ContextError {
   code: ContextErrorCode;
@@ -227,14 +238,19 @@ export function parseRemoteApplications(
     }
 
     for (const application of owner.applications) {
-      const binding = parseBindingApplication(application);
       if (
-        !binding.ok ||
         !isRecord(application) ||
+        !isNonEmptyString(application.app_id) ||
+        !application.app_id.startsWith("app_") ||
+        !isNonEmptyString(application.org_id) ||
+        !isSafeDeployUrl(application.deploy_url) ||
+        !isSafeGitUrl(application.git_ssh_url, application.app_id) ||
+        !isNonEmptyString(application.name) ||
+        typeof application.alias !== "string" ||
         !isNonEmptyString(application.zone) ||
         !isNonEmptyString(application.type) ||
         !isIsoDate(application.createdAt) ||
-        binding.value.org_id !== owner.id
+        application.org_id !== owner.id
       ) {
         return failure(
           "MALFORMED_REMOTE_APPLICATIONS",
@@ -243,7 +259,12 @@ export function parseRemoteApplications(
       }
 
       applications.push({
-        ...binding.value,
+        app_id: application.app_id,
+        org_id: application.org_id,
+        deploy_url: application.deploy_url,
+        git_ssh_url: application.git_ssh_url,
+        name: application.name,
+        alias: application.alias,
         zone: application.zone,
         type: application.type,
         createdAt: application.createdAt,
@@ -307,10 +328,7 @@ export function validateRemoteApplication(
   identity: ValidatedIdentity,
 ): Result<RemoteApplication, ContextError> {
   const matching = applications.filter(
-    (application) =>
-      application.org_id === identity.ownerId &&
-      application.name === stagingName &&
-      application.alias === stagingAlias,
+    (application) => application.org_id === identity.ownerId && application.name === stagingName,
   );
   if (matching.length !== 1 || matching[0] === undefined) {
     return failure("UNSAFE_BINDING", "The remote staging application is not uniquely identified.");

@@ -49,6 +49,7 @@ const blockedEnvironmentNames = [
   "SSH_GATEWAY",
   "GIT_SSH",
   "GIT_SSH_COMMAND",
+  "LIBRE_AI_CLEVER_EXPECTED_EMAIL",
 ] as const;
 
 const defaultMaximumOutputBytes = 64 * 1024;
@@ -214,4 +215,19 @@ export async function runCaptured(
     stdoutTruncated: stdout.truncated,
     stderrTruncated: stderr.truncated,
   };
+}
+
+export async function runInteractive(
+  command: string,
+  arguments_: readonly string[],
+  options: Omit<CommandOptions, "maxOutputBytes"> = {},
+): Promise<number> {
+  const subprocess = Bun.spawn([command, ...arguments_], {
+    cwd: options.cwd,
+    env: options.environment,
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  return await subprocess.exited;
 }

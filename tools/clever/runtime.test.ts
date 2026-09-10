@@ -9,6 +9,7 @@ import {
   readJsonFile,
   resolvePersonalPaths,
   runCaptured,
+  runInteractive,
   writeJsonAtomically,
 } from "./runtime";
 
@@ -151,5 +152,11 @@ describe("bounded subprocess capture", () => {
     expect(result.stdoutTruncated).toBe(true);
     expect(result.stderrTruncated).toBe(true);
     expect(result.exitCode).toBe(0);
+  });
+
+  test("preserves the exit status of an interactive subprocess", async () => {
+    const exitCode = await runInteractive(process.execPath, ["-e", "process.exit(6)"]);
+
+    expect(exitCode).toBe(6);
   });
 });
