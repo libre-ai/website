@@ -83,6 +83,11 @@ Les contrats restent canoniques dans [`libre-ai/contracts`](https://github.com/l
 
 Pour suivre l'avancement ou contribuer, ouvrez des pull requests directement dans `libre-ai/website` (les issues sont désactivées).
 
+Le gate de pull request vérifie les commits auteurs, mais il ne peut pas inspecter le commit
+d'intégration que la forge créera ensuite. Lorsqu'une pull request est intégrée par merge commit, le
+corps du message de merge doit donc porter un trailer valide `Signed-off-by: Nom <email>` ; le gate
+post-merge vérifie ce commit supplémentaire et refuse son absence.
+
 ## Non-objectifs et refus
 
 Website refuse délibérément de :

@@ -97,6 +97,11 @@ bun run test:e2e
 
 The unit gate emits an LCOV report under `coverage/` and fails below 90% line or function coverage.
 
+The PR gate verifies authored commits, but it cannot inspect the integration commit that the forge
+will create later. When a pull request is integrated with a merge commit, its merge-message body
+must therefore carry a valid `Signed-off-by: Name <email>` trailer; the post-merge push gate checks
+that additional commit and fails closed when the trailer is absent.
+
 ## Non-goals and refusals
 
 Website deliberately **refuses** to:
