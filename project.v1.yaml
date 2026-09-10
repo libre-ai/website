@@ -18,7 +18,8 @@ current_situation: >-
   Le build de production rend la marque Libre AI, ses preuves, la flotte
   complète, les comparaisons datées et un accès au starter exécutable. Le
   mot-symbole reste seul publié : le signe figuratif est refusé tant que ses
-  contrôles ne sont pas acceptés. Aucun déploiement public n'est encore prouvé.
+  contrôles ne sont pas acceptés. La frontière de déploiement Clever personnelle
+  est testée ; aucun déploiement public n'est encore prouvé.
 scope:
   - "page d'accueil : état des projets généré depuis les fiches (jamais déclaré)"
   - "comparaisons factuelles datées et sourcées"

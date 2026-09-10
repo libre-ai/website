@@ -88,6 +88,49 @@ d'intégration que la forge créera ensuite. Lorsqu'une pull request est intégr
 corps du message de merge doit donc porter un trailer valide `Signed-off-by: Nom <email>` ; le gate
 post-merge vérifie ce commit supplémentaire et refuse son absence.
 
+## Frontière Clever Cloud personnelle
+
+Les commandes de déploiement du dépôt sont prises en charge uniquement via le point d'entrée gardé.
+Il isole les identifiants de la configuration Clever globale de la machine et exige le Personal
+Space de l'utilisateur authentifié, un jeton valide, la 2FA active et une identité SSH dédiée. Les
+commandes globales `clever` directes ne sont pas prises en charge dans ce dépôt, car elles
+contournent ces contrôles.
+
+Pour le premier enrôlement local, saisir l'adresse personnelle attendue sans l'afficher ni
+l'inscrire dans l'historique du shell. Elle est retirée avant tout sous-processus Clever et persiste
+uniquement dans la politique locale protégée par ses permissions :
+
+```sh
+read -r -s LIBRE_AI_CLEVER_EXPECTED_EMAIL
+export LIBRE_AI_CLEVER_EXPECTED_EMAIL
+bun run clever:login
+unset LIBRE_AI_CLEVER_EXPECTED_EMAIL
+bun run clever:doctor
+```
+
+Le flux gardé autorise une application de staging statique à Paris. Aucun owner, application, alias,
+endpoint, identifiant, force ou paramètre SSH fourni par l'appelant n'est accepté :
+
+```sh
+bun run clever:personal -- create-staging
+bun run clever:personal -- deploy-staging
+bun run clever:personal -- status
+bun run clever:personal -- activity
+bun run clever:personal -- logs
+```
+
+Le déploiement exige l'origine Git personnelle canonique, un `main` local propre et strictement égal
+à `origin/main`, puis les gates agrégé et navigateur au vert. La récupération reste explicite :
+
+```sh
+bun run clever:personal -- stop-staging
+bun run clever:personal -- rollback-staging <previous-commit-sha>
+```
+
+La création de production, le domaine canonique et les cibles détenues par une organisation restent
+refusés. Aucune URL technique de staging n'est revendiquée avant un déploiement et un smoke
+post-déploiement verts.
+
 ## Non-objectifs et refus
 
 Website refuse délibérément de :

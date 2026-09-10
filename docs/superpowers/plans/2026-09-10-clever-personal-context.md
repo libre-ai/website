@@ -320,20 +320,20 @@ git commit -m "feat: guard personal Clever operations"
 - Consumes: package scripts from Task 3
 - Produces: public deployment/refusal documentation with no real identity values
 
-- [ ] **Step 1: Write the documentation assertions first**
+- [ ] **Step 1: Confirm the operational contract is behaviorally covered**
 
-Extend an existing focused test or add `tools/clever/documentation.test.ts` to assert that contributor documentation:
+Use `tools/clever/personal.test.ts` to prove the guarded commands and refusal boundary that the documentation exposes:
 
-- uses `bun run clever:doctor` and `bun run clever:personal -- <operation>`;
-- states that raw global `clever` commands are unsupported in this repository;
-- contains neither a real email domain nor any Clever resource identifier;
-- describes Personal Space, 2FA, dedicated SSH identity, Paris staging, and rollback refusal.
+- validates the exact personal identity, Personal Space owner, 2FA and dedicated SSH identity;
+- permits only fixed Paris staging operations and refuses arbitrary Clever flags;
+- scrubs inherited credentials, endpoints and SSH overrides;
+- runs aggregate and browser gates before the fixed deploy command.
 
-- [ ] **Step 2: Run the documentation test and prove RED**
+- [ ] **Step 2: Run the focused behavioral test before editing documentation**
 
-Run: `bun test tools/clever/documentation.test.ts`
+Run: `bun test tools/clever/personal.test.ts`
 
-Expected: FAIL because the deployment contract is absent.
+Expected: PASS. Documentation prose is reviewed directly; source-text grep assertions are excluded because they test wording rather than behavior.
 
 - [ ] **Step 3: Document the guarded flow in English and French**
 
@@ -345,14 +345,14 @@ Keep public deployment pending until the real staging smoke passes. Add the pers
 
 - [ ] **Step 5: Run documentation and aggregate gates**
 
-Run: `bun test tools/clever/documentation.test.ts && bun run check && bun run test:e2e`
+Run: `bun test tools/clever/personal.test.ts && bun run check && bun run test:e2e`
 
-Expected: documentation test and 25 Playwright assertions PASS; existing redundant capture skips remain expected.
+Expected: guarded CLI tests and 25 Playwright assertions PASS; existing redundant capture skips remain expected.
 
 - [ ] **Step 6: Commit the operational contract**
 
 ```bash
-git add README.md README.fr.md docs/apps/website.md project.v1.yaml tools/clever/documentation.test.ts
+git add README.md README.fr.md docs/apps/website.md project.v1.yaml docs/superpowers/specs/2026-09-10-clever-personal-context-design.md docs/superpowers/plans/2026-09-10-clever-personal-context.md
 git commit -m "docs: require the personal Clever boundary"
 ```
 

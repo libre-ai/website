@@ -27,7 +27,7 @@ The earlier investigation produced a contained confidentiality incident: non-sec
 
 ### Tracked guard
 
-`tools/clever-personal.ts` is the only supported repository entry point. It exposes a small allowlist of high-level operations instead of forwarding arbitrary Clever Tools arguments:
+`tools/clever/personal.ts` is the only supported repository entry point. It exposes a small allowlist of high-level operations instead of forwarding arbitrary Clever Tools arguments:
 
 - `doctor`: read-only validation of the repository, isolated files, authenticated profile, 2FA, personal owner, and dedicated SSH key.
 - `login`: authenticate into the isolated credential file only, then require `doctor` before continuing.
@@ -40,7 +40,7 @@ Production creation and deployment are not part of this change. They require a s
 
 ### Pure policy core
 
-`tools/clever-context.ts` owns parsing and policy decisions without spawning processes. It validates typed profile, local policy, application binding, repository state, and requested operation inputs. It returns explicit errors rather than throwing untyped values or terminating the process.
+`tools/clever/context.ts` owns parsing and policy decisions without spawning processes. It validates typed profile, local policy, application binding, repository state, and requested operation inputs. It returns explicit errors rather than throwing untyped values or terminating the process.
 
 The expected email remains in a local policy document so the tracked code and fixtures never reproduce personal data. Tests use reserved `example.test` identities.
 

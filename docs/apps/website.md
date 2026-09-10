@@ -45,6 +45,8 @@ Publication is an offline candidate transition: `source-selected → validated �
 | `website.remote_asset` | rendered output references a non-approved remote asset |
 | `website.non_deterministic` | second build from same inputs differs |
 | `website.publication_unapproved` | human publication approval absent |
+| `website.release_context_unsafe` | release identity, owner, 2FA, SSH identity or local Git state is not the enrolled personal context |
+| `website.release_candidate_unverified` | aggregate, browser or post-deploy smoke evidence is red |
 
 Any one refusal prevents the complete candidate from replacing the current static release.
 
@@ -91,4 +93,6 @@ Packages 1–2 can proceed in parallel after contract approval; 3 depends on bot
 
 ## Release and rollback
 
-Release requires identical clean builds, zero broken internal links, browser/accessibility evidence, source-policy checks and human approval. Static artifacts are content-addressed. Rollback atomically restores the previous complete artifact; partial route rollback is forbidden. No Clever environment is configured before G4.
+Release requires identical clean builds, zero broken internal links, browser/accessibility evidence, source-policy checks and human approval. Static artifacts are content-addressed. Rollback atomically restores the previous complete artifact; partial route rollback is forbidden.
+
+Clever Cloud release operations use only the repository's guarded personal-context entry point. The guard isolates credentials from machine-wide configuration, requires the authenticated user's Personal Space, enabled 2FA, a dedicated Ed25519 identity, a clean synchronized `main`, and fixed application arguments. Only a static Paris staging target is currently permitted. Production, organization-owned targets and direct global `clever` commands remain refused. A failed post-deploy smoke stops staging; rollback to one explicit 40-character commit remains a separate operation.
