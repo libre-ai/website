@@ -31,6 +31,11 @@ jobs:
       # install first: the bun floor and toolchain scripts run from the
       # pinned governance git-dep (node_modules), design §5.3.
       - run: bun install --frozen-lockfile
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Install pinned REUSE toolchain for the aggregate local gate
+        run: python -m pip install --disable-pip-version-check --requirement node_modules/@libre-ai/governance/tools/licensing/requirements.txt
       - name: Verify Bun 1.4+ floor and exact CI revision
         run: |
           test "$(bun --revision)" = "1.4.0-canary.1+57f349f63"

@@ -27,10 +27,11 @@
     "test:e2e:brand-local": "bun run check:bun:runtime && env -u NO_COLOR -u FORCE_COLOR playwright test",
     "check:secret-scan": "bun run check:bun:runtime && bun node_modules/@libre-ai/governance/tools/quality/check-secret-scan.ts",
     "check:personal-data": "bun run check:bun:runtime && bun node_modules/@libre-ai/governance/tools/quality/check-personal-data-boundary.ts",
+    "check:licensing": "bun run check:bun:runtime && reuse lint && bun node_modules/@libre-ai/governance/tools/quality/check-declared-licenses.ts",
     "lint": "bun run check:bun:runtime && biome ci .",
     "typecheck": "bun run check:bun:runtime && tsc --noEmit -p tsconfig.json",
     "pretest": "bun run check:bun",
     "test": "bun test",
-    "check": "bun run check:bun && bun run check:toolchain && bun run build && bun run check:secret-scan && bun run check:personal-data && bun run lint && bun run typecheck && bun run test"
+    "check": "bun run check:bun && bun run check:toolchain && bun run build && bun run check:secret-scan && bun run check:personal-data && bun run check:licensing && bun run lint && bun run typecheck && bun run test"
   }
 }
