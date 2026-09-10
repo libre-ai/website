@@ -11,6 +11,10 @@ const layerLabels: Readonly<Record<string, string>> = {
   moyeu: "Moyeu",
 };
 
+const starterQuickstartUrl = requirePublicHttpsUrl(
+  "https://github.com/libre-ai/starter/blob/acccae671aa46419fce9d0b7ff7cbe2511f073a6/starter/README.md#d%C3%A9marrage-rapide",
+).href;
+
 export interface HomePageInput {
   readonly brand: PublicBrandProjection;
   readonly fleetRows: readonly FleetRow[];
@@ -106,11 +110,11 @@ export function renderHome(input: HomePageInput): string {
     ? '<img class="brand-mark" src="./assets/libre-ai-mark.svg" alt="">'
     : "";
   const content = `
-<section class="hero lai-page">${mark}<p class="eyebrow">Fabrique ouverte de logiciels d’IA</p><p class="tension">${escapeHtml(copy.tension)}</p><h1>${escapeHtml(copy.promise)}</h1><p class="lede">${escapeHtml(copy.explanation)}</p><p class="qualification">${escapeHtml(copy.qualification)} ${escapeHtml(copy.reasonToBelieve)}</p><p class="actions"><a class="primary-action" href="#methode">${escapeHtml(copy.primaryCta)}</a> <a href="#preuves">${escapeHtml(copy.secondaryCta)}</a></p></section>
+<section class="hero lai-page">${mark}<p class="eyebrow">Fabrique ouverte de logiciels d’IA</p><p class="tension">${escapeHtml(copy.tension)}</p><h1>${escapeHtml(copy.promise)}</h1><p class="lede">${escapeHtml(copy.explanation)}</p><p class="qualification">${escapeHtml(copy.qualification)} ${escapeHtml(copy.reasonToBelieve)}</p><p class="actions"><a class="primary-action" href="${escapeHtml(starterQuickstartUrl)}">${escapeHtml(copy.primaryCta)}</a> <a href="#preuves">${escapeHtml(copy.secondaryCta)}</a></p><p class="action-boundary">Démonstration exécutable, pas application prête pour la production.</p></section>
 <aside class="provenance lai-page" aria-label="Provenance">État généré depuis <code>fleet-status.v1.json</code> · vérification la plus récente : <time datetime="${escapeHtml(latestVerification)}">${escapeHtml(latestVerification)}</time> · Aucun tracking.</aside>
 <section class="section lai-page" id="preuves"><p class="section-index">01 / PREUVES</p><h2>Ne nous croyez pas. Vérifiez.</h2><div class="card-grid">${renderProofs(input.brand)}</div></section>
 <section class="section lai-page" id="produits"><p class="section-index">02 / PRODUITS</p><h2>Une gamme, pas une boîte noire.</h2>${renderProductCards(input.fleetRows)}</section>
-<section class="section lai-page" id="methode"><p class="section-index">03 / FABRIQUE</p><h2>Prenez les clés.</h2><ol class="factory"><li><strong>Décider</strong><span>Rendre les arbitrages explicites.</span></li><li><strong>Construire</strong><span>Composer des briques ouvertes.</span></li><li><strong>Vérifier</strong><span>Tester les affirmations et publier les limites.</span></li><li><strong>Publier</strong><span>Versionner les preuves avec le produit.</span></li></ol></section>
+<section class="section lai-page" id="methode"><p class="section-index">03 / FABRIQUE</p><h2>Prenez les clés.</h2><ol class="factory"><li><strong>Décider</strong><span>Rendre les arbitrages explicites.</span></li><li><strong>Construire</strong><span>Composer des briques ouvertes.</span></li><li><strong>Vérifier</strong><span>Tester les affirmations et publier les limites.</span></li><li><strong>Publier</strong><span>Versionner les preuves avec le produit.</span></li></ol><p><a href="${escapeHtml(starterQuickstartUrl)}">Ouvrir le starter versionné et ses commandes de vérification</a>.</p></section>
 <section class="section lai-page" id="etat-complet"><p class="section-index">04 / ÉTAT COMPLET</p><h2>Tout l'atelier, sans sélection marketing.</h2>${renderFleetTable(input.fleetRows)}</section>
 <section class="section contribution"><div class="lai-page"><p class="section-index">05 / CONTRIBUTION</p><h2>La fabrique est ouverte.</h2><p>Inspectez les décisions, testez les preuves et proposez des changements traçables.</p><a class="primary-action" href="https://github.com/libre-ai">Ouvrir les dépôts</a></div></section>`;
   return page("Libre AI — Possédez la fabrique", content);

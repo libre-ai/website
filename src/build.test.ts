@@ -1,7 +1,9 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 
-import { buildStaticBrandSite, escapeHtml, renderComparisons, renderHome } from "./build";
-import { COMPARISONS, VERIFIED_ON } from "./comparisons";
+import { buildStaticBrandSite, loadProductionSiteInput, writeStaticSite } from "./build";
 import { validProjection } from "./test-fixtures";
 
 const status = {
@@ -19,29 +21,32 @@ const status = {
   ],
 };
 
-describe("renderHome", () => {
-  test("renders the computed display and ships no script tag", () => {
-    const html = renderHome(status, "fleet-status.v1.json (governance)");
-    expect(html).toContain("20 % du périmètre actuellement déclaré");
-    expect(html).toContain('lang="fr"');
-    expect(html).not.toContain("<script");
-  });
-});
+const temporaryRoots: string[] = [];
 
-describe("renderComparisons", () => {
-  test("carries the eight sourced rows and the verification date", () => {
-    const html = renderComparisons();
-    expect(COMPARISONS.length).toBe(8);
-    expect(html).toContain(VERIFIED_ON);
-    for (const c of COMPARISONS) expect(html).toContain(c.url);
-    expect(html).not.toContain("<script");
-  });
-});
+async function temporaryRoot(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "libre-ai-website-"));
+  temporaryRoots.push(root);
+  return root;
+}
 
-describe("escapeHtml", () => {
-  test("escapes markup-significant characters", () => {
-    expect(escapeHtml('<a href="x">&')).toBe("&lt;a href=&quot;x&quot;&gt;&amp;");
-  });
+async function writeFixture(root: string, relativePath: string, value: string): Promise<void> {
+  const path = join(root, relativePath);
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, value, "utf8");
+}
+
+async function exists(path: string): Promise<boolean> {
+  try {
+    await stat(path);
+    return true;
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+afterEach(async () => {
+  await Promise.all(temporaryRoots.splice(0).map((root) => rm(root, { recursive: true })));
 });
 
 describe("buildStaticBrandSite", () => {
@@ -95,5 +100,81 @@ describe("buildStaticBrandSite", () => {
         uiStyles: '.x { background: url("//tracker.invalid/x.png"); }',
       }),
     ).toThrow("brand.output_remote_asset");
+  });
+});
+
+describe("production input", () => {
+  test("loads reviewed Governance and UI projections while withholding the mark", async () => {
+    const root = await temporaryRoot();
+    await writeFixture(
+      root,
+      "node_modules/@libre-ai/governance/brand/projections/public-brand.v1.json",
+      JSON.stringify(validProjection),
+    );
+    await writeFixture(
+      root,
+      "node_modules/@libre-ai/governance/ecosystem/projections/fleet-status.v1.json",
+      JSON.stringify(status),
+    );
+    await writeFixture(root, "node_modules/@libre-ai/ui/src/styles.css", "ui-styles");
+    await writeFixture(root, "node_modules/@libre-ai/ui/src/tokens.css", "ui-tokens");
+
+    await expect(loadProductionSiteInput(root)).resolves.toEqual({
+      brandProjection: validProjection,
+      fleetStatus: status,
+      uiStyles: "ui-styles",
+      uiTokens: "ui-tokens",
+      figurativeAssetsApproved: false,
+      brandMark: null,
+    });
+  });
+});
+
+describe("static artifact replacement", () => {
+  test("replaces the complete output and removes a stale figurative asset", async () => {
+    const root = await temporaryRoot();
+    const outputRoot = join(root, "dist");
+    await writeFixture(root, "dist/index.html", "old");
+    await writeFixture(root, "dist/assets/libre-ai-mark.svg", "stale-mark");
+
+    await writeStaticSite(
+      outputRoot,
+      new Map([
+        ["index.html", "new"],
+        ["assets/styles.css", "styles"],
+      ]),
+    );
+
+    expect(await Bun.file(join(outputRoot, "index.html")).text()).toBe("new");
+    expect(await exists(join(outputRoot, "assets/libre-ai-mark.svg"))).toBe(false);
+  });
+
+  test("refuses traversal without mutating the previous artifact", async () => {
+    const root = await temporaryRoot();
+    const outputRoot = join(root, "dist");
+    await writeFixture(root, "dist/index.html", "old");
+
+    await expect(
+      writeStaticSite(outputRoot, new Map([["../escape.html", "hostile"]])),
+    ).rejects.toThrow("brand.output_path_invalid");
+    expect(await Bun.file(join(outputRoot, "index.html")).text()).toBe("old");
+    expect(await exists(join(root, "escape.html"))).toBe(false);
+  });
+
+  test("keeps the previous artifact when staging fails", async () => {
+    const root = await temporaryRoot();
+    const outputRoot = join(root, "dist");
+    await writeFixture(root, "dist/index.html", "old");
+
+    await expect(
+      writeStaticSite(
+        outputRoot,
+        new Map([
+          ["conflict", "file"],
+          ["conflict/nested.html", "cannot-be-written"],
+        ]),
+      ),
+    ).rejects.toThrow();
+    expect(await Bun.file(join(outputRoot, "index.html")).text()).toBe("old");
   });
 });

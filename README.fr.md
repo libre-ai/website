@@ -1,7 +1,7 @@
 [English](README.md) · **Français**
 
 > [!NOTE]
-> **Application active, régularisée par signature propriétaire.** Ce dépôt s'est activé de fait — sept pull requests mergées avant tout acte propriétaire — et [ADR-0020](https://github.com/libre-ai/governance/blob/main/docs/adr/0020-general-activation-and-hub-dismantling.md) §2.4 régularise cette activation nominativement : la signature de l'ADR _est_ l'acte. Le publieur statique construit déjà la page d'accueil et les huit comparaisons datées à partir du code de ce dépôt, chaîne verte en CI (voir `project.v1.yaml`). Il n'est pas encore déployé sur une URL publique, et le CDC complet (`docs/apps/website.md`) — les parcours lecteurs restants — reste à servir.
+> **Application active, régularisée par signature propriétaire.** Ce dépôt s'est activé de fait — sept pull requests mergées avant tout acte propriétaire — et [ADR-0020](https://github.com/libre-ai/governance/blob/main/docs/adr/0020-general-activation-and-hub-dismantling.md) §2.4 régularise cette activation nominativement : la signature de l'ADR _est_ l'acte. Le build de production rend désormais la marque examinée, ses preuves, la flotte complète, les comparaisons datées et un lien immuable vers le starter exécutable. Il n'est pas encore déployé sur une URL publique, et le CDC complet (`docs/apps/website.md`) reste en attente.
 
 # Website
 
@@ -11,11 +11,11 @@ Le cas canonique auquel il répond : _« donner au public un accès en lecture s
 
 ## Ce qui le distingue
 
-- **Déterministe et statique.** Les sorties de construction sont adressées par contenu ; des entrées identiques produisent toujours des versions identiques. Les lecteurs ne frappent jamais un runtime changeant — toute la surface statique est reproductible et auditable, jamais l'opinion d'un modèle.
+- **Déterministe et statique.** Des entrées épinglées par SHA produisent un artefact complet de cinq fichiers. Les lecteurs ne frappent aucun runtime applicatif — la surface est reproductible et auditable, jamais l'opinion d'un modèle.
 - **Examiné seulement.** Seul le contenu sélectionné et approuvé de Git atteint la publication. Aucun brouillon non examiné sur les origines publiques ; aucune vérité rédigée par un CMS.
-- **Sans suivi et souverain.** Aucune analytique, empreinte digitale ni cookie de suivi comportemental. La recherche est auto-hébergée (Pagefind). Aucune dépendance externe dans le HTML rendu.
-- **Citable et sourcé.** Chaque affirmation porte son auteur, son assistance, ses sources, sa date d'examen et son historique de corrections. Les lecteurs exportent, citent et vérifient avant utilisation.
-- **Accessible par conception.** Le HTML sémantique fonctionne sans JavaScript. Clavier, zoom 200/400 %, mouvement réduit, contraste élevé et trois moteurs de navigateur sont testés. L'échec de la recherche laisse un plan du site navigable.
+- **Sans suivi et souverain.** Aucune analytique, empreinte digitale, cookie comportemental, police distante ou JavaScript client. La recherche n'est pas encore livrée plutôt que déléguée à un service externe.
+- **Citable et sourcé.** Les preuves de marque exposent leur source, leur date de vérification et leur limite ; l'état de la flotte vient de la projection Governance épinglée.
+- **Accessible par conception.** Le HTML sémantique fonctionne sans JavaScript. Navigation clavier, reflow étroit, mouvement réduit, couleurs forcées et trois moteurs de navigateur sont testés.
 
 ## État — spécifié, première projection construite et chaîne verte en CI
 
@@ -24,11 +24,11 @@ La phase de première projection de Website (γ 3.6) est **acceptée** : le tabl
 | Fondation                                                                   | État                             | Preuve                                                                                                                                                                                                                   |
 | --------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Suite de contrats** — Knowledge Object, Public Projection, Feeds          | ✅ verrouillé                    | CDC approuvé et fusionné ; schémas canoniques sous `contracts/schemas/` dans [`libre-ai/contracts`](https://github.com/libre-ai/contracts) ([PR #209 du hub](https://github.com/libre-ai/libre-ai/pull/209), historique) |
-| **Tableau de la page d'accueil** — généré depuis la projection fleet-status | ✅ construit, chaîne verte en CI | `src/build.ts` ; `project.v1.yaml` phase première projection, critère `homepage-table`, accepté                                                                                                                          |
-| **Huit comparaisons datées** — sourcées et datées                           | ✅ construit, chaîne verte en CI | `src/comparisons.ts` ; `project.v1.yaml` phase première projection, critère `dated-comparisons`, accepté                                                                                                                 |
+| **Build de production de marque** — mot-symbole, preuves, flotte, CTA       | ✅ construit, gardé             | `src/build.ts` ; entrées Governance/UI épinglées par SHA ; actif figuratif forcé à absent                                                                                                                                |
+| **Comparaisons datées** — sourcées et datées                                | ✅ construites, gardées          | `src/comparisons.ts` ; incluses dans le même artefact de production complet                                                                                                                                               |
 | **Parcours CDC complets** — comprendre, vérifier, contribuer, découvrir     | ⏳ en attente                    | [`docs/apps/website.md`](docs/apps/website.md) ; `project.v1.yaml` phase CDC, critère `cdc-journeys`, en attente                                                                                                         |
 | **Déploiement public** — une URL vivante accessible aux lecteurs            | ⏳ en attente                    | `dist/` se construit et est vérifié en CI ; pas encore publié nulle part                                                                                                                                                 |
-| **Gates navigateur et accessibilité** — Chromium/Firefox/WebKit             | 🧪 candidat vert                 | Preview de marque locale non publiée : 25 scénarios passés, 5 captures redondantes ignorées ; l'intégration de production attend encore des SHA amont joignables                                                         |
+| **Gates navigateur et accessibilité** — Chromium/Firefox/WebKit             | ✅ gate de production            | Playwright construit et teste `dist/` dans six modes navigateur/accessibilité ; la CI bloque sur échec                                                                                                                     |
 
 Ce dépôt est actif (ADR-0020 §2.4), ni réservé ni archivé ; le README est tenu à jour, et les pull requests atterrissent directement ici (les issues sont désactivées). **Aucune cible de référence** — ceci est la projection publique propre de l'organisation, non un objectif de parité contre le site d'un autre fournisseur. La mesure du succès est la projection complète, honnête et sans suivi du savoir examiné.
 
@@ -40,20 +40,21 @@ Website consomme :
 - **Projections de produit** — capacité et état pour chaque produit de l'inventaire (`docs/apps/*.md`).
 - **Preuve de forge** — auteur, dates d'examen, états d'approbation et enregistrements de corrections de Git.
 
-Et publie :
+Le build de production actuel publie :
 
-- **Routes statiques** — pages de produit, intégration, FAQ, URL canoniques avec dates de source et liens de preuve.
-- **Métadonnées lisibles par machine** — feeds Atom/RSS, sitemap avec dates de modification, projections schéma JSON pour crawlers.
-- **Index de recherche** — Pagefind auto-hébergé, aucune API de recherche externe.
-- **Historique de corrections** — version et audit pour chaque affirmation corrigée.
+- **Trois routes statiques** — page d'accueil, comparaisons datées et guide de marque gardé.
+- **Actifs de style locaux** — tokens et styles UI épinglés, plus la mise en page spécifique au site.
+- **Passage à l'exécutable** — le CTA principal pointe vers un quick-start immuable et précise qu'il s'agit d'une démonstration, pas d'une application prête pour la production.
+
+Recherche, sitemap, feeds et parcours restants comprendre/vérifier/contribuer/découvrir appartiennent au CDC complet encore en attente. Ils ne sont pas présentés comme des sorties actuelles.
 
 ## Comment ça fonctionne
 
-1. **Compiler** — sélectionner les objets canoniques de Git (docs, contrats, inventaire), valider la complétude et la provenance, et figer un instantané adressé par contenu.
-2. **Rendre** — instancier l'instantané en routes HTML, feeds Atom, sitemaps et métadonnées de recherche en utilisant des composants déterministes, sans capacité.
-3. **Vérifier-fumée** — tester tous les liens internes, URL canoniques, redirections, gates d'accessibilité (clavier, zoom, contraste élevé) et CSP, puis exiger l'approbation humaine avant la version.
-4. **Publier** — remplacer de manière atomique l'artefact statique complet. Les lecteurs obtiennent la nouvelle version ou la version antérieure — jamais un état partiel ou intermédiaire.
-5. **Corriger** — accepter les propositions via issue/PR GitHub. Les corrections approuvées sont une nouvelle rendre, re-vérifiée et republié ; la preuve passée reste auditable.
+1. **Charger** — lire les projections de marque/flotte Governance et les sources UI depuis des git-dépendances épinglées par SHA.
+2. **Valider** — refuser les projections mal formées, actifs distants et HTML/SVG exécutable ; forcer l'actif figuratif non approuvé à absent.
+3. **Rendre** — produire trois fichiers HTML et deux fichiers CSS locaux, sans JavaScript client.
+4. **Remplacer** — préparer l'artefact complet à côté de `dist/`, puis le renommer atomiquement en préservant le répertoire précédent sur échec.
+5. **Qualifier** — reconstruire, lancer les gates unitaires et navigateur, puis examiner le visuel généré avant publication.
 
 ## Architecture — projection à partir de contrats interopérables
 
@@ -61,11 +62,11 @@ Website est une couche de projection transversale, non un moteur de domaine. Ell
 
 | Composant                                         | Rôle                                             | Interface exposée / consommée                                                                                                         |
 | ------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Suite de contrats** (schémas verrouillés)       | Surface d'interopérabilité                       | Knowledge Object v1, Public Projection v1, Correction Record v1                                                                       |
-| **Compilateur de corpus** (validation, sélection) | Pipeline source-vers-instantané                  | Lit les objets Git, valide contre le schéma, émet un instantané adressé par contenu                                                   |
-| **Modèle statique Bun** (React 19 SSR)            | Coque HTML accessible, génération de métadonnées | Rend les instantanés en HTML statique déterministe, feeds Atom, sitemaps, JSON de recherche                                           |
-| **Indexeur Pagefind** (auto-hébergé hors ligne)   | Surface de recherche                             | Construit l'index de recherche à partir du HTML rendu sans appels réseau ; émet search.json avec moteur WASM                          |
-| **Gate de publication** (intégrité + approbation) | Transition candidat → version                    | Valide les constructions identiques, tous les liens internes résolus, gates d'accessibilité passées, puis exige l'approbation humaine |
+| **Chargeur d'entrées épinglées**                  | Frontière des entrées canoniques                 | Lit les révisions exactes des git-dépendances Governance et UI                                                                         |
+| **Parseurs stricts et gardes de sécurité**        | Frontière de refus                               | Valident les projections et refusent toute sortie distante ou exécutable                                                               |
+| **Templates statiques Bun**                       | Surface de publication accessible                | Rendent du HTML/CSS déterministe sans runtime client                                                                                    |
+| **Écrivain transactionnel**                       | Candidat → artefact local complet                | Prépare tous les fichiers, supprime les actifs périmés et restaure l'artefact antérieur sur échec                                      |
+| **Gates unitaires et Playwright**                 | Preuve de release                                | Vérifient le comportement puis Chromium, Firefox, WebKit, sans JS, mouvement réduit et couleurs forcées                                |
 
 L'hôte qui autorise passe les octets d'instantané canoniques au moteur de rendu ; le moteur de rendu ne détient aucun jeton et n'atteint aucun réseau externe. Tout consommateur qui parle les mêmes contrats peut projeter le même instantané.
 
@@ -74,7 +75,7 @@ L'hôte qui autorise passe les octets d'instantané canoniques au moteur de rend
 Le développement actif est dans ce dépôt :
 
 - `src/build.ts`, `src/comparisons.ts` — le modèle statique et le compilateur de comparaisons.
-- `dist/` — la sortie construite en CI, adressée par contenu (`index.html`, `comparaisons.html`).
+- `dist/` — la sortie générée complète (`index.html`, `comparaisons.html`, `marque.html` et deux actifs CSS).
 - `docs/apps/website.md` — le cahier des charges complet du produit, migré du hub (désormais archivé).
 - `project.v1.yaml` — la fiche d'état qui fait autorité ; la section générée ci-dessous n'en diverge jamais.
 
@@ -97,10 +98,9 @@ N'importe lequel de ces refus empêche une construction candidate de se publier.
 
 ## Contrats
 
-- Knowledge Object v1 — `ecosystem/schemas/knowledge-object.schema.json`
-- Public Projection v1 — `contracts/schemas/public-projection.v1.schema.json`
-- Correction Record v1 — `contracts/schemas/correction-record.v1.schema.json`
-- API de lecture publique — `contracts/openapi/website.v1.yaml`
+- Les contrats de produit et de parcours lecteur restent spécifiés dans [`docs/apps/website.md`](docs/apps/website.md).
+- Le moteur actuel consomme les projections public-brand et fleet-status épinglées depuis Governance.
+- Recherche, feeds et API publique restent en attente ; ce dépôt ne les expose pas encore.
 
 ## Licence
 
