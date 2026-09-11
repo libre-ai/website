@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import {
   parseBinding,
+  parseCredentialsBoundary,
+  parsePersonalApplications,
   parsePolicy,
   parseProfile,
   parseRemoteApplications,
@@ -12,10 +14,25 @@ import {
 } from "./context";
 
 const validProfile = {
+  alias: "libre-ai-personal",
   id: "user_personal_fixture",
   email: "owner@personal.example.test",
   has2FA: true,
+  isProfileActive: true,
   isTokenValid: true,
+};
+
+const validCredentials = {
+  version: 1,
+  profiles: [
+    {
+      alias: "libre-ai-personal",
+      token: "opaque-fixture-one",
+      secret: "opaque-fixture-two",
+      userId: "user_personal_fixture",
+      email: "owner@personal.example.test",
+    },
+  ],
 };
 
 const validPolicy = {
@@ -30,7 +47,7 @@ const validBinding = {
     {
       app_id: "app_staging_fixture",
       org_id: "user_personal_fixture",
-      deploy_url: "https://app-staging-fixture.cleverapps.io",
+      deploy_url: "https://push.par.clever-cloud.com/app_staging_fixture.git",
       git_ssh_url: "git+ssh://git@push.par.clever-cloud.com/app_staging_fixture.git",
       name: "libre-ai-website-staging",
       alias: "website-staging",
@@ -50,9 +67,8 @@ const validRemoteApplications = [
         zone: "par",
         type: "static",
         createdAt: "2026-09-10T12:00:00.000Z",
-        deploy_url: "https://app-staging-fixture.cleverapps.io",
+        deploy_url: "https://push.par.clever-cloud.com/app_staging_fixture.git",
         git_ssh_url: "git+ssh://git@push.par.clever-cloud.com/app_staging_fixture.git",
-        alias: "",
       },
     ],
   },
@@ -130,9 +146,98 @@ describe("personal Clever identity policy", () => {
       "MALFORMED_POLICY",
     );
   });
+
+  test("accepts exactly one override-free isolated credential profile", () => {
+    expect(parseCredentialsBoundary(validCredentials)).toEqual({
+      ok: true,
+      value: {
+        token: "opaque-fixture-one",
+        secret: "opaque-fixture-two",
+      },
+    });
+    expectErrorCode(
+      parseCredentialsBoundary({
+        ...validCredentials,
+        profiles: [
+          ...validCredentials.profiles,
+          { ...validCredentials.profiles[0], alias: "work" },
+        ],
+      }),
+      "UNSAFE_CREDENTIALS",
+    );
+    expectErrorCode(
+      parseCredentialsBoundary({
+        ...validCredentials,
+        profiles: [
+          {
+            ...validCredentials.profiles[0],
+            overrides: { API_HOST: "https://wrong.example.test" },
+          },
+        ],
+      }),
+      "UNSAFE_CREDENTIALS",
+    );
+  });
+
+  test("rejects profile aliases and embedded endpoint overrides", () => {
+    expectErrorCode(parseProfile({ ...validProfile, alias: "work" }), "MALFORMED_PROFILE");
+    expectErrorCode(
+      parseProfile({
+        ...validProfile,
+        overrides: { API_HOST: "https://wrong.example.test" },
+      }),
+      "MALFORMED_PROFILE",
+    );
+    expectErrorCode(parseProfile({ ...validProfile, isProfileActive: false }), "MALFORMED_PROFILE");
+  });
 });
 
 describe("personal Clever application policy", () => {
+  test("normalizes the Personal Space API inventory without an organization envelope", () => {
+    const expectedApplication = validRemoteApplications[0]?.applications[0];
+    if (expectedApplication === undefined) throw new Error("fixture application is missing");
+    const result = parsePersonalApplications(
+      [
+        {
+          id: "app_staging_fixture",
+          name: "libre-ai-website-staging",
+          zone: "par",
+          instance: { variant: { slug: "static" } },
+          creationDate: Date.parse("2026-09-10T12:00:00.000Z"),
+          deployment: {
+            httpUrl: "https://push.par.clever-cloud.com/app_staging_fixture.git",
+            url: "git+ssh://git@push.par.clever-cloud.com/app_staging_fixture.git",
+          },
+        },
+      ],
+      "user_personal_fixture",
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      value: [expectedApplication],
+    });
+    expectErrorCode(
+      parsePersonalApplications(
+        [
+          {
+            id: "app_staging_fixture",
+            name: "libre-ai-website-staging",
+            zone: "par",
+            instance: { variant: { slug: "static" } },
+            creationDate: Date.parse("2026-09-10T12:00:00.000Z"),
+            deployment: {
+              httpUrl: "https://attacker.example.test/app_staging_fixture.git",
+              url: "git+ssh://git@push.par.clever-cloud.com/app_staging_fixture.git",
+            },
+          },
+        ],
+        "user_personal_fixture",
+      ),
+      "MALFORMED_REMOTE_APPLICATIONS",
+    );
+  });
+
   test("accepts no binding before staging creation", () => {
     const profile = parseProfile(validProfile);
     const policy = parsePolicy(validPolicy);
@@ -171,11 +276,29 @@ describe("personal Clever application policy", () => {
     const remoteAsset = parseBinding({
       apps: [{ ...validBinding.apps[0], deploy_url: "javascript:alert(1)" }],
     });
+    const publicUrlAsGitRemote = parseBinding({
+      apps: [
+        {
+          ...validBinding.apps[0],
+          deploy_url: "https://app-staging-fixture.cleverapps.io",
+        },
+      ],
+    });
+    const sshPathSmuggling = parseBinding({
+      apps: [
+        {
+          ...validBinding.apps[0],
+          git_ssh_url: "git+ssh://git@push.par.clever-cloud.com/untrusted/app_staging_fixture.git",
+        },
+      ],
+    });
     if (!multiple.ok || !wrongOwner.ok) throw new Error("fixture parsing failed");
 
     expectErrorCode(validateOptionalBinding(multiple.value, identity.value), "UNSAFE_BINDING");
     expectErrorCode(validateOptionalBinding(wrongOwner.value, identity.value), "WRONG_OWNER");
     expectErrorCode(remoteAsset, "MALFORMED_BINDING");
+    expectErrorCode(publicUrlAsGitRemote, "MALFORMED_BINDING");
+    expectErrorCode(sshPathSmuggling, "MALFORMED_BINDING");
   });
 
   test("accepts an unbound remote alias and validates type and Paris zone independently", () => {

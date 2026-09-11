@@ -1,17 +1,20 @@
-import { open, readFile, rename, stat, unlink } from "node:fs/promises";
+import { lstat, open, readFile, realpath, rename, unlink } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, relative, resolve } from "node:path";
 
 import type { ContextError, Result } from "./context";
 
 export interface PersonalPaths {
   configDirectory: string;
+  runtimeHome: string;
+  xdgConfigHome: string;
+  xdgCacheHome: string;
+  xdgDataHome: string;
   credentials: string;
+  experimentalFeatures: string;
   policy: string;
   binding: string;
   bindingCandidate: string;
-  sshPrivateKey: string;
-  sshPublicKey: string;
 }
 
 export interface RuntimeEnvironmentInput {
@@ -40,17 +43,73 @@ const blockedEnvironmentNames = [
   "CLEVER_TOKEN",
   "CLEVER_SECRET",
   "CONFIGURATION_FILE",
+  "EXPERIMENTAL_FEATURES_FILE",
   "APP_CONFIGURATION_FILE",
   "API_HOST",
   "AUTH_BRIDGE_HOST",
   "CONSOLE_URL",
+  "CONSOLE_TOKEN_URL",
+  "GOTO_URL",
+  "API_DOC_URL",
+  "DOC_URL",
   "OAUTH_CONSUMER_KEY",
   "OAUTH_CONSUMER_SECRET",
   "SSH_GATEWAY",
   "GIT_SSH",
   "GIT_SSH_COMMAND",
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_COMMON_DIR",
+  "GIT_OBJECT_DIRECTORY",
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+  "GIT_INDEX_FILE",
+  "GIT_CEILING_DIRECTORIES",
+  "GIT_EXEC_PATH",
+  "GIT_PROXY_COMMAND",
+  "GIT_ASKPASS",
+  "GIT_TERMINAL_PROMPT",
+  "GIT_CONFIG_SYSTEM",
+  "GIT_CONFIG_GLOBAL",
+  "GIT_CONFIG_NOSYSTEM",
+  "SSH_AUTH_SOCK",
+  "NODE_OPTIONS",
+  "NODE_PATH",
+  "NODE_EXTRA_CA_CERTS",
+  "NODE_TLS_REJECT_UNAUTHORIZED",
+  "SSL_CERT_FILE",
+  "SSL_CERT_DIR",
+  "BUN_OPTIONS",
+  "DYLD_INSERT_LIBRARIES",
+  "LD_PRELOAD",
+  "HTTP_PROXY",
+  "HTTPS_PROXY",
+  "ALL_PROXY",
+  "NO_PROXY",
+  "http_proxy",
+  "https_proxy",
+  "all_proxy",
+  "no_proxy",
   "LIBRE_AI_CLEVER_EXPECTED_EMAIL",
 ] as const;
+
+function isBlockedEnvironmentName(name: string): boolean {
+  return (
+    blockedEnvironmentNames.some((blockedName) => blockedName === name) ||
+    name.startsWith("GIT_CONFIG_KEY_") ||
+    name.startsWith("GIT_CONFIG_VALUE_") ||
+    name === "GIT_CONFIG_COUNT"
+  );
+}
+
+export function hasUnsafeContextOverride(
+  source: Readonly<Record<string, string | undefined>>,
+  allowedNames: ReadonlySet<string> = new Set(),
+): boolean {
+  return Object.entries(source).some(
+    ([name, value]) =>
+      value !== undefined && !allowedNames.has(name) && isBlockedEnvironmentName(name),
+  );
+}
 
 const defaultMaximumOutputBytes = 64 * 1024;
 
@@ -61,33 +120,55 @@ function runtimeFailure<T>(
   return { ok: false, error: { code, safeMessage } };
 }
 
-function quoteShellArgument(value: string): string {
-  return `'${value.replaceAll("'", `'"'"'`)}'`;
-}
-
 export function resolvePersonalPaths(home = homedir()): PersonalPaths {
   const configDirectory = join(home, ".config", "libre-ai", "clever");
   return {
     configDirectory,
+    runtimeHome: join(configDirectory, "home"),
+    xdgConfigHome: join(configDirectory, "xdg-config"),
+    xdgCacheHome: join(configDirectory, "xdg-cache"),
+    xdgDataHome: join(configDirectory, "xdg-data"),
     credentials: join(configDirectory, "clever-tools.json"),
+    experimentalFeatures: join(configDirectory, "clever-tools-experimental-features.json"),
     policy: join(configDirectory, "context.json"),
     binding: join(configDirectory, "website-staging.json"),
     bindingCandidate: join(configDirectory, "website-staging.candidate.json"),
-    sshPrivateKey: join(home, ".ssh", "libre_ai_clever_personal_ed25519"),
-    sshPublicKey: join(home, ".ssh", "libre_ai_clever_personal_ed25519.pub"),
   };
 }
 
-export function buildIsolatedEnvironment(input: RuntimeEnvironmentInput): Record<string, string> {
+export function buildSanitizedEnvironment(
+  source: Readonly<Record<string, string | undefined>>,
+): Record<string, string> {
   const environment: Record<string, string> = {};
-  for (const [name, value] of Object.entries(input.source)) {
+  for (const [name, value] of Object.entries(source)) {
     if (value !== undefined) environment[name] = value;
   }
-  for (const name of blockedEnvironmentNames) delete environment[name];
+  for (const name of Object.keys(environment)) {
+    if (isBlockedEnvironmentName(name)) delete environment[name];
+  }
+  return environment;
+}
 
+export function buildIsolatedEnvironment(input: RuntimeEnvironmentInput): Record<string, string> {
+  const environment = buildSanitizedEnvironment(input.source);
+  delete environment.HOME;
+  delete environment.XDG_CONFIG_HOME;
+  delete environment.XDG_CACHE_HOME;
+  delete environment.XDG_DATA_HOME;
+  delete environment.APPDATA;
+  environment.HOME = input.paths.runtimeHome;
+  environment.XDG_CONFIG_HOME = input.paths.xdgConfigHome;
+  environment.XDG_CACHE_HOME = input.paths.xdgCacheHome;
+  environment.XDG_DATA_HOME = input.paths.xdgDataHome;
+  environment.APPDATA = input.paths.xdgConfigHome;
+  environment.PATH = "/usr/bin:/bin:/usr/sbin:/sbin";
+  environment.GIT_CONFIG_GLOBAL = "/dev/null";
+  environment.GIT_CONFIG_SYSTEM = "/dev/null";
+  environment.GIT_CONFIG_NOSYSTEM = "1";
+  environment.GIT_TERMINAL_PROMPT = "0";
   environment.CONFIGURATION_FILE = input.paths.credentials;
+  environment.EXPERIMENTAL_FEATURES_FILE = input.paths.experimentalFeatures;
   environment.APP_CONFIGURATION_FILE = input.applicationConfigurationFile ?? input.paths.binding;
-  environment.GIT_SSH_COMMAND = `ssh -i ${quoteShellArgument(input.paths.sshPrivateKey)} -o IdentitiesOnly=yes`;
   return environment;
 }
 
@@ -96,9 +177,11 @@ export async function checkProtectedMode(
   kind: ProtectedPathKind,
 ): Promise<Result<void, ContextError>> {
   try {
-    const details = await stat(path);
+    const details = await lstat(path);
     const permissions = details.mode & 0o777;
     const isExpectedType = kind === "directory" ? details.isDirectory() : details.isFile();
+    const currentUserId = process.getuid?.();
+    const isOwnedByCurrentUser = currentUserId === undefined || details.uid === currentUserId;
     const modeIsSafe =
       kind === "directory"
         ? permissions === 0o700
@@ -106,8 +189,28 @@ export async function checkProtectedMode(
           ? (permissions & 0o133) === 0 && (permissions & 0o022) === 0
           : permissions === 0o600;
 
-    if (!isExpectedType || !modeIsSafe) {
+    if (!isExpectedType || !isOwnedByCurrentUser || !modeIsSafe) {
       return runtimeFailure("UNSAFE_FILE_MODE", "A personal Clever path has unsafe permissions.");
+    }
+    return { ok: true, value: undefined };
+  } catch {
+    return runtimeFailure("FILE_IO_ERROR", "A required personal Clever path is unavailable.");
+  }
+}
+
+export async function checkCanonicalPathWithinHome(
+  path: string,
+  home: string,
+): Promise<Result<void, ContextError>> {
+  try {
+    const lexicalRelativePath = relative(resolve(home), resolve(path));
+    if (lexicalRelativePath === "" || lexicalRelativePath.startsWith("..")) {
+      return runtimeFailure("UNSAFE_FILE_MODE", "A personal Clever path escapes its home.");
+    }
+    const canonicalHome = await realpath(home);
+    const canonicalPath = await realpath(path);
+    if (canonicalPath !== resolve(canonicalHome, lexicalRelativePath)) {
+      return runtimeFailure("UNSAFE_FILE_MODE", "A personal Clever path uses a symbolic link.");
     }
     return { ok: true, value: undefined };
   } catch {

@@ -1,5 +1,6 @@
 export type ContextErrorCode =
   | "MALFORMED_PROFILE"
+  | "UNSAFE_CREDENTIALS"
   | "MALFORMED_POLICY"
   | "MALFORMED_BINDING"
   | "MALFORMED_REMOTE_APPLICATIONS"
@@ -18,13 +19,14 @@ export type ContextErrorCode =
   | "UNSUPPORTED_OPERATION"
   | "COMMAND_ERROR"
   | "MISSING_CONTEXT"
-  | "SSH_KEY_MISMATCH"
   | "REMOTE_APP_CONFLICT"
   | "DIRTY_REPOSITORY"
   | "WRONG_REPOSITORY"
   | "WRONG_BRANCH"
   | "OUTDATED_MAIN"
-  | "QUALITY_GATE_FAILED";
+  | "QUALITY_GATE_FAILED"
+  | "SMOKE_TEST_FAILED"
+  | "ROLLBACK_COMMIT_REJECTED";
 
 export interface ContextError {
   code: ContextErrorCode;
@@ -34,9 +36,11 @@ export interface ContextError {
 export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
 
 export interface CleverProfile {
+  alias: "libre-ai-personal";
   id: string;
   email: string;
   has2FA: boolean;
+  isProfileActive: true;
   isTokenValid: boolean;
 }
 
@@ -50,6 +54,11 @@ export interface PersonalContextPolicy {
 export interface ValidatedIdentity {
   userId: string;
   ownerId: string;
+}
+
+export interface ValidatedCleverCredentials {
+  token: string;
+  secret: string;
 }
 
 interface CleverBindingApplication {
@@ -67,7 +76,12 @@ export interface CleverBinding {
 
 export interface ValidatedBinding extends CleverBindingApplication {}
 
-export interface RemoteApplication extends CleverBindingApplication {
+export interface RemoteApplication {
+  app_id: string;
+  org_id: string;
+  deploy_url: string;
+  git_ssh_url: string;
+  name: string;
   zone: string;
   type: string;
   createdAt: string;
@@ -100,7 +114,7 @@ function isIsoDate(value: unknown): value is string {
   return isNonEmptyString(value) && !Number.isNaN(Date.parse(value));
 }
 
-function isSafeDeployUrl(value: unknown): value is string {
+function isSafeHttpsGitUrl(value: unknown, applicationId: string): value is string {
   if (!isNonEmptyString(value)) return false;
   try {
     const url = new URL(value);
@@ -109,10 +123,10 @@ function isSafeDeployUrl(value: unknown): value is string {
       url.username === "" &&
       url.password === "" &&
       url.port === "" &&
-      url.pathname === "/" &&
+      url.pathname === `/${applicationId}.git` &&
       url.search === "" &&
       url.hash === "" &&
-      url.hostname.endsWith(".cleverapps.io")
+      url.hostname === "push.par.clever-cloud.com"
     );
   } catch {
     return false;
@@ -120,10 +134,9 @@ function isSafeDeployUrl(value: unknown): value is string {
 }
 
 function isSafeGitUrl(value: unknown, applicationId: string): value is string {
-  if (!isNonEmptyString(value)) return false;
-  const expectedSuffix = `/${applicationId}.git`;
   return (
-    value.startsWith("git+ssh://git@push.par.clever-cloud.com/") && value.endsWith(expectedSuffix)
+    isNonEmptyString(value) &&
+    value === `git+ssh://git@push.par.clever-cloud.com/${applicationId}.git`
   );
 }
 
@@ -137,7 +150,7 @@ function parseBindingApplication(value: unknown): Result<CleverBindingApplicatio
     !isNonEmptyString(applicationId) ||
     !applicationId.startsWith("app_") ||
     !isNonEmptyString(value.org_id) ||
-    !isSafeDeployUrl(value.deploy_url) ||
+    !isSafeHttpsGitUrl(value.deploy_url, applicationId) ||
     !isSafeGitUrl(value.git_ssh_url, applicationId) ||
     !isNonEmptyString(value.name) ||
     !isNonEmptyString(value.alias)
@@ -161,9 +174,12 @@ function parseBindingApplication(value: unknown): Result<CleverBindingApplicatio
 export function parseProfile(value: unknown): Result<CleverProfile, ContextError> {
   if (
     !isRecord(value) ||
+    value.alias !== "libre-ai-personal" ||
     !isNonEmptyString(value.id) ||
     !isEmail(value.email) ||
     typeof value.has2FA !== "boolean" ||
+    value.isProfileActive !== true ||
+    value.overrides !== undefined ||
     typeof value.isTokenValid !== "boolean"
   ) {
     return failure("MALFORMED_PROFILE", "The Clever profile response is malformed.");
@@ -172,10 +188,56 @@ export function parseProfile(value: unknown): Result<CleverProfile, ContextError
   return {
     ok: true,
     value: {
+      alias: "libre-ai-personal",
       id: value.id,
       email: value.email,
       has2FA: value.has2FA,
+      isProfileActive: true,
       isTokenValid: value.isTokenValid,
+    },
+  };
+}
+
+export function parseCredentialsBoundary(
+  value: unknown,
+): Result<ValidatedCleverCredentials, ContextError> {
+  if (
+    !isRecord(value) ||
+    value.version !== 1 ||
+    !Array.isArray(value.profiles) ||
+    value.profiles.length !== 1 ||
+    Object.keys(value).some((key) => key !== "version" && key !== "profiles")
+  ) {
+    return failure("UNSAFE_CREDENTIALS", "The isolated Clever credentials are not allowed.");
+  }
+
+  const profile = value.profiles[0];
+  const allowedProfileKeys = new Set([
+    "alias",
+    "token",
+    "secret",
+    "expirationDate",
+    "userId",
+    "email",
+  ]);
+  if (
+    !isRecord(profile) ||
+    profile.alias !== "libre-ai-personal" ||
+    !isNonEmptyString(profile.token) ||
+    !isNonEmptyString(profile.secret) ||
+    (profile.expirationDate !== undefined && !isNonEmptyString(profile.expirationDate)) ||
+    (profile.userId !== undefined && !isNonEmptyString(profile.userId)) ||
+    (profile.email !== undefined && !isEmail(profile.email)) ||
+    Object.keys(profile).some((key) => !allowedProfileKeys.has(key))
+  ) {
+    return failure("UNSAFE_CREDENTIALS", "The isolated Clever credentials are not allowed.");
+  }
+
+  return {
+    ok: true,
+    value: {
+      token: profile.token,
+      secret: profile.secret,
     },
   };
 }
@@ -243,10 +305,9 @@ export function parseRemoteApplications(
         !isNonEmptyString(application.app_id) ||
         !application.app_id.startsWith("app_") ||
         !isNonEmptyString(application.org_id) ||
-        !isSafeDeployUrl(application.deploy_url) ||
+        !isSafeHttpsGitUrl(application.deploy_url, application.app_id) ||
         !isSafeGitUrl(application.git_ssh_url, application.app_id) ||
         !isNonEmptyString(application.name) ||
-        typeof application.alias !== "string" ||
         !isNonEmptyString(application.zone) ||
         !isNonEmptyString(application.type) ||
         !isIsoDate(application.createdAt) ||
@@ -264,12 +325,75 @@ export function parseRemoteApplications(
         deploy_url: application.deploy_url,
         git_ssh_url: application.git_ssh_url,
         name: application.name,
-        alias: application.alias,
         zone: application.zone,
         type: application.type,
         createdAt: application.createdAt,
       });
     }
+  }
+
+  return { ok: true, value: applications };
+}
+
+export function parsePersonalApplications(
+  value: unknown,
+  ownerId: string,
+): Result<readonly RemoteApplication[], ContextError> {
+  if (!Array.isArray(value) || !isNonEmptyString(ownerId)) {
+    return failure(
+      "MALFORMED_REMOTE_APPLICATIONS",
+      "The Clever application inventory is malformed.",
+    );
+  }
+
+  const applications: RemoteApplication[] = [];
+  for (const application of value) {
+    if (!isRecord(application) || !isRecord(application.instance)) {
+      return failure(
+        "MALFORMED_REMOTE_APPLICATIONS",
+        "The Clever application inventory is malformed.",
+      );
+    }
+    const variant = application.instance.variant;
+    const deployment = application.deployment;
+    const applicationId = application.id;
+    const rawCreationDate = application.creationDate;
+    const creationDate =
+      typeof rawCreationDate === "string" || typeof rawCreationDate === "number"
+        ? new Date(rawCreationDate)
+        : null;
+    const createdAt =
+      creationDate !== null && !Number.isNaN(creationDate.getTime())
+        ? creationDate.toISOString()
+        : null;
+    if (
+      !isNonEmptyString(applicationId) ||
+      !applicationId.startsWith("app_") ||
+      !isNonEmptyString(application.name) ||
+      !isNonEmptyString(application.zone) ||
+      !isRecord(variant) ||
+      !isNonEmptyString(variant.slug) ||
+      !isRecord(deployment) ||
+      !isSafeHttpsGitUrl(deployment.httpUrl, applicationId) ||
+      !isSafeGitUrl(deployment.url, applicationId) ||
+      createdAt === null
+    ) {
+      return failure(
+        "MALFORMED_REMOTE_APPLICATIONS",
+        "The Clever application inventory is malformed.",
+      );
+    }
+
+    applications.push({
+      app_id: applicationId,
+      org_id: ownerId,
+      deploy_url: deployment.httpUrl,
+      git_ssh_url: deployment.url,
+      name: application.name,
+      zone: application.zone,
+      type: variant.slug,
+      createdAt,
+    });
   }
 
   return { ok: true, value: applications };

@@ -26,8 +26,10 @@ export function parsePreviewArguments(args: readonly string[]): PreviewArguments
   };
 }
 
-async function main(): Promise<void> {
-  const args = parsePreviewArguments(process.argv.slice(2));
+export async function writeBrandPreview(
+  args: PreviewArguments,
+  workingDirectory = process.cwd(),
+): Promise<number> {
   const [brandProjection, fleetStatus, uiStyles, uiTokens] = await Promise.all([
     Bun.file(join(args.governanceRoot, "brand/projections/public-brand.v1.json")).json(),
     Bun.file(join(args.governanceRoot, "ecosystem/projections/fleet-status.v1.json")).json(),
@@ -43,15 +45,18 @@ async function main(): Promise<void> {
     brandMark: null,
   });
 
-  await rm(join(args.outputRoot, "assets/libre-ai-mark.svg"), { force: true });
+  const outputRoot = join(workingDirectory, args.outputRoot);
+  await rm(join(outputRoot, "assets/libre-ai-mark.svg"), { force: true });
   for (const [path, value] of files) {
-    const destination = join(args.outputRoot, path);
+    const destination = join(outputRoot, path);
     await mkdir(join(destination, ".."), { recursive: true });
     await Bun.write(destination, value);
   }
-  console.log(`Wrote ${files.size} guarded preview files to ${args.outputRoot}.`);
+  return files.size;
 }
 
 if (import.meta.main) {
-  await main();
+  const args = parsePreviewArguments(process.argv.slice(2));
+  const fileCount = await writeBrandPreview(args);
+  console.log(`Wrote ${fileCount} guarded preview files to ${args.outputRoot}.`);
 }

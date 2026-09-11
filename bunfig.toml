@@ -8,5 +8,5 @@ root = "."
 coverage = true
 coverageReporter = ["text", "lcov"]
 coverageDir = "./coverage"
-coverageThreshold = { line = 0.9, function = 0.9 }
+coverageThreshold = 0.9
 coverageSkipTestFiles = true

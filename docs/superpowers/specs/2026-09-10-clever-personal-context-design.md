@@ -2,157 +2,154 @@
 
 ## Status
 
-Approved intent: every Clever Cloud operation initiated from the Libre AI Website repository must use the owner's personal Clever Cloud account. The expected email is sensitive local configuration and must never be committed, printed, or included in test fixtures.
+Approved intent: every Clever Cloud operation initiated from the Libre AI Website repository uses
+the owner's personal Clever account. The expected email is sensitive local configuration and is
+never committed, printed, or included in test fixtures.
 
-## Problem
+## Problem and incident classification
 
-The machine-wide Clever Tools configuration currently selects a non-personal account. Clever Tools also permits a shared default SSH key and global active-profile switching. Running the global `clever` executable from the Website repository can therefore query or mutate the wrong account even though the Git repository itself is personal.
-
-The earlier investigation produced a contained confidentiality incident: non-secret account and application metadata from the non-personal context entered the current agent session. No application, add-on, configuration, domain, deployment, repository remote, credential, or source file was created or changed. The repository must not retain the incident's email addresses, owner IDs, application IDs, or application names.
+The machine-wide Clever Tools configuration selects a non-personal account. A direct global
+`clever` command can therefore query or mutate the wrong context even when the Git repository is
+personal. The earlier investigation exposed non-secret professional account and application
+metadata only inside the private agent session. No resource, configuration, deployment, domain,
+repository remote, credential, or source file was mutated. No professional or personal identifier
+is retained in the repository.
 
 ## Security invariants
 
-1. The tracked repository contains no Clever token, secret, account email, user ID, owner ID, application ID, or machine-local absolute path.
-2. The personal Clever credentials, expected identity, application binding, and SSH private key are separate from every machine-wide or professional configuration.
-3. The expected profile email must match the locally enrolled personal identity exactly.
-4. The selected owner must equal the authenticated personal user's ID. Organization-owned targets are refused.
-5. Two-factor authentication must be enabled before any application mutation or deployment.
-6. Incoming environment variables cannot override the credential file, API endpoints, application binding, or SSH identity.
-7. Deployment uses a dedicated Ed25519 key with `IdentitiesOnly=yes`; the default SSH key is never offered.
-8. Commands target only the bound Website application. Arbitrary `--org`, `--owner`, `--app`, `--alias`, credential, endpoint, force, or SSH overrides are refused.
-9. Every refusal is safe to print and contains no token, secret, email address, or raw profile payload.
-10. Direct invocation of the global `clever` executable is outside repository enforcement. Repository documentation and automation expose only the guarded entry point and never install a shared Clever remote.
+1. Tracked files contain no Clever token, secret, account email, user ID, owner ID, application ID,
+   or machine-local absolute path.
+2. Credentials, identity policy, binding, `HOME`, XDG config, cache, and data roots are isolated
+   beneath `~/.config/libre-ai/clever/`.
+3. The active profile is exactly `libre-ai-personal`; its email equals the locally enrolled value,
+   its token is valid, and 2FA is enabled.
+4. The only owner is the authenticated user's ID. Organization-owned targets are refused.
+5. Environment variables cannot override credentials, endpoints, TLS verification, Git context,
+   application binding, proxy routing, or runtime state roots.
+6. The repository-pinned Clever Tools version is invoked through the current absolute Bun binary;
+   caller-controlled `PATH` is never used for Clever or quality gates.
+7. The binding contains exactly one `libre-ai-website-staging` application with alias
+   `website-staging`, type `static`, region `par`, and the exact HTTPS and SSH Git endpoints emitted
+   by Clever Tools 4.11.
+8. No caller-supplied owner, application, alias, endpoint, credential, force, or transport argument
+   is forwarded.
+9. Captured provider output is bounded and never forwarded. Printable diagnostics contain no
+   profile payload, email, ID, token, or secret.
+10. Direct global Clever invocation remains unsupported and outside repository enforcement.
+11. Personal application inventory comes only from `GET /v2/self/applications`; no organization
+    inventory or account-wide ID resolution is allowed. Every bound Clever command targets the
+    locally validated alias, never a caller-provided or remotely resolved application ID.
 
-## Architecture
+## Guard architecture
 
-### Tracked guard
+`tools/clever/personal.ts` exposes only `doctor`, `login`, `create-staging`, `deploy-staging`,
+`status`, `activity`, `stop-staging`, and `rollback-staging`. Pure parsing and policy checks live in
+`tools/clever/context.ts`; subprocess, environment, filesystem, and atomic-write controls live in
+`tools/clever/runtime.ts`.
 
-`tools/clever/personal.ts` is the only supported repository entry point. It exposes a small allowlist of high-level operations instead of forwarding arbitrary Clever Tools arguments:
-
-- `doctor`: read-only validation of the repository, isolated files, authenticated profile, 2FA, personal owner, and dedicated SSH key.
-- `login`: authenticate into the isolated credential file only, then require `doctor` before continuing.
-- `create-staging`: create and bind one static Paris application in the authenticated user's Personal Space.
-- `status`, `activity`, and `logs`: read the bound staging application only.
-- `deploy-staging`: require a clean `main`, green local gates, the exact personal context, and the dedicated SSH identity before deployment.
-- `stop-staging` and `rollback-staging`: explicit recovery operations against the same bound application.
-
-Production creation and deployment are not part of this change. They require a separate explicit production decision.
-
-### Pure policy core
-
-`tools/clever/context.ts` owns parsing and policy decisions without spawning processes. It validates typed profile, local policy, application binding, repository state, and requested operation inputs. It returns explicit errors rather than throwing untyped values or terminating the process.
-
-The expected email remains in a local policy document so the tracked code and fixtures never reproduce personal data. Tests use reserved `example.test` identities.
-
-### Local state
-
-The guard derives one fixed directory beneath the current user's configuration directory:
+The local state is:
 
 ```text
 ~/.config/libre-ai/clever/
-├── clever-tools.json       # personal OAuth credentials, mode 0600
-├── context.json            # expected email and enrolled user ID, mode 0600
-└── website-staging.json    # Clever application binding, mode 0600
+├── clever-tools.json                  # OAuth credentials, 0600
+├── context.json                       # expected identity and owner, 0600
+├── website-staging.json               # validated Clever binding, 0600
+├── home/                              # isolated HOME, 0700
+├── xdg-config/                        # Clever features and ID cache root, 0700
+├── xdg-cache/                         # isolated cache root, 0700
+└── xdg-data/                          # isolated data root, 0700
 ```
 
-The directory must be mode `0700`. A less restrictive directory or sensitive file mode is a hard refusal. The repository does not use `.clever.json`.
+The repository never uses `.clever.json`. Final files and every parent component are checked for
+ownership, exact permissions, regular-file type, and symbolic links. Guard-owned writes use a
+temporary sibling plus atomic rename. Credential and candidate files are atomically pre-created at
+`0600` before Clever Tools can write them, so its in-place JSON writer cannot introduce a
+permissive creation window.
 
-The SSH identity is stored separately:
+Every Clever subprocess receives fixed credentials and binding paths, fixed `HOME` and XDG roots,
+an inert global/system Git configuration, no Git prompt, a minimal fixed `PATH`, and scrubbed
+credential, endpoint, TLS, proxy, loader, Git, and Node overrides. Clever's own feature and ID-cache
+modules derive their paths from the isolated XDG root.
 
-```text
-~/.ssh/libre_ai_clever_personal_ed25519
-~/.ssh/libre_ai_clever_personal_ed25519.pub
-```
+The pinned official Clever client signs one bounded request to
+`https://api.clever-cloud.com/v2/self/applications` with the validated isolated credentials. The
+request refuses redirects and the JSON response is size-bounded and parsed from `unknown`. This
+explicit Personal Space endpoint replaces Clever Tools 4.11's organization-only application list.
+The guard never invokes `clever curl`, whose inherited executable and output channel are unsuitable
+for this boundary.
 
-The setup flow creates the key only when absent and never overwrites an existing key. Registering the public key on the personal account is an explicit external mutation and is reported before execution.
+## Enrollment
 
-### Process boundary
+The operator supplies the expected email through a hidden shell read. The guard creates protected
+state roots, runs `clever login --alias libre-ai-personal` against the isolated credential file,
+validates the returned profile and 2FA, then atomically records the authenticated user ID as the only
+allowed owner. The email environment variable is removed before every child process. No
+machine-wide Clever file is read or changed.
 
-Every Clever subprocess receives a fresh environment that:
+## Staging creation
 
-- removes `CLEVER_TOKEN`, `CLEVER_SECRET`, `CONFIGURATION_FILE`, `APP_CONFIGURATION_FILE`, API endpoint overrides, and inherited SSH overrides;
-- sets the isolated `CONFIGURATION_FILE` and `APP_CONFIGURATION_FILE` paths;
-- sets `GIT_SSH_COMMAND` to the dedicated key with `IdentitiesOnly=yes`;
-- disables the update notifier to avoid unrelated writes and warnings.
+Creation first requires a clean `main` exactly equal to fetched `origin/main`, then green aggregate
+and browser gates. The command fixes type `static`, region `par`, name, and alias, while deliberately
+omitting `--org`: Clever therefore creates through `/self`, and the guarded inventory verifies that
+the result belongs to the authenticated Personal Space.
+It writes into a protected candidate binding, validates the actual Clever Tools 4.11 binding and
+remote inventory, explicitly sets and reads back:
 
-The guard parses `clever profile --format json`, compares the exact email only in memory, and emits only a boolean identity result. It never prints the email, user ID, owner ID, or raw profile payload.
+- `CC_BUILD_COMMAND=true`, preventing static-generator auto-detection;
+- `CC_STATIC_SERVER=caddy`;
+- `CC_WEBROOT=/site`;
+- health checks for `/`, `/comparaisons.html`, and `/marque.html`.
 
-## Enrollment flow
+Only then is the binding atomically promoted. Any failure after remote creation deletes the unique
+just-created application. A non-zero or malformed create response is reconciled against the remote
+inventory; ambiguous state fails closed for manual verification. Rollback first writes a canonical
+candidate binding, deletes through `--alias website-staging`, verifies absence through `/self`, and
+only then removes the candidate.
 
-1. Create the protected local directory.
-2. Store the expected personal email in `context.json` with mode `0600`.
-3. Run `clever login --alias libre-ai-personal` against the isolated credential file.
-4. Read the authenticated profile and refuse a mismatch without printing either email.
-5. Require 2FA. If disabled, stop before creating a key, application, or binding.
-6. Persist the authenticated user ID as both expected user and allowed owner.
-7. Create or verify the dedicated SSH key.
-8. Register only that public key on the personal Clever account.
-9. Run `doctor`; only a completely green result unlocks application creation.
+## Deployment and smoke
 
-No step reads the machine-wide Clever configuration after enrollment begins.
+Deployment repeats the synchronized-Git and quality gates. Clever Tools 4.11 deploys through its
+HTTPS/OAuth Git endpoint, not the binding's SSH endpoint. The guard therefore creates a private
+local clone with no hard links, runs pinned `clever deploy` inside it, and removes it before return.
+The provider may add a remote only inside that disposable clone; the working repository remains
+unchanged. This also avoids first-connection SSH trust-on-first-use while keeping credentials inside
+the isolated Clever process.
 
-## Deployment flow
+All Clever operations after binding use `--alias website-staging`, which resolves owner and
+application directly from the protected local binding without consulting account-wide summary
+metadata. After provider success, the guard queries domains by that alias and accepts
+exactly one root `*.cleverapps.io` URL. Smoke requests forbid redirects, credentials, referrers,
+remote assets, executable markup, oversized bodies, wrong content types, missing page markers, and
+missing security headers. Failure triggers an application stop; inability to verify that stop is
+reported explicitly. A stopped label is accepted only when no deployment remains in progress.
+Provider logs are never exposed.
 
-1. `doctor` validates the personal boundary.
-2. The guard verifies the Git root, canonical personal origin, `main`, clean worktree, and equality between local `HEAD` and `origin/main`.
-3. The aggregate quality gate and browser tests run before the remote mutation.
-4. `create-staging`, when needed, forces type `static`, region `par`, and owner equal to the personal user ID.
-5. The returned binding is validated and written atomically with mode `0600`.
-6. `deploy-staging` pushes using the dedicated SSH identity and follows deployment activity.
-7. Smoke tests target the technical Clever URL. A failed smoke stops the application and reports the previous successful deployment; rollback remains an explicit action.
+Rollback accepts only an explicit full SHA that resolves to a commit in fetched canonical `main`.
+It requires the same clean synchronized repository and green quality gates as deployment. Restart
+failure, unsafe domain discovery, or any failed three-route smoke triggers the same verified stop;
+the rollback is successful only after the public result passes the complete smoke contract.
 
-## Error handling
+The tracked `site/` tree is byte-identical to `buildProductionSite()` and is served by the root
+`Caddyfile`. The explicit no-op build command avoids executing the provider's older Bun while retaining the
+repository's Bun 1.4 floor for generation and verification. Generated `site/` output is excluded
+from source linting but is covered by byte-equality, source lint, security, and browser tests.
 
-- Malformed JSON, missing files, permissive modes, identity mismatch, disabled 2FA, wrong owner, wrong application, dirty Git state, red tests, or unsupported arguments fail before mutation.
-- Enrollment writes use a temporary sibling file followed by an atomic rename.
-- Secrets and emails are represented as redacted values in every diagnostic path.
-- Partial enrollment is safe: no application operation is enabled until `doctor` passes all invariants.
-- External commands have bounded output capture and preserve their exit status without logging the complete environment.
+## Tests and acceptance
 
-## Tests
-
-### Unit
-
-- Accept the exact enrolled personal profile and personal owner.
-- Reject an email mismatch, missing profile, malformed profile, disabled 2FA, owner different from user, malformed binding, wrong application, and unsafe file modes.
-- Reject every credential, endpoint, application, owner, alias, force, and SSH override.
-- Verify that error messages contain neither fixture emails nor profile payloads.
-
-### Focused integration
-
-- Use temporary directories, a fake Clever executable, and a fake SSH command.
-- Prove that the global credential file and default SSH key are never opened or offered.
-- Prove that subprocesses receive only the isolated paths and dedicated SSH command.
-- Prove that failed enrollment and failed binding writes leave prior local state intact.
-
-### Repository gates
-
-- Include the new tests in `bun run test` and coverage enforcement.
-- Run `bun run check` and the existing Playwright production suite.
-- Run secret and personal-data scans over the final diff.
-
-### Personal-context smoke
-
-After interactive login, run `doctor` against the real personal account. The acceptable output is a redacted PASS report showing exact-identity match, 2FA enabled, Personal Space ownership, dedicated SSH identity, and no application mutation yet.
-
-## Documentation
-
-README contributor instructions expose guarded commands only and explicitly refuse the global Clever CLI in this repository. Examples use placeholders and reserved domains; no real personal or professional identifier is committed.
+- Tests use only reserved identities and domains and model the real Clever Tools 4.11 binding.
+- Wrong identity, owner, 2FA, URL, zone, type, mode, symlink, environment, repository, branch,
+  revision, gate, domain, header, or page content fails closed.
+- Subprocess streams are bounded; errors and outputs are redaction-tested.
+- Dependency licenses are compatible and `bun audit` reports no known vulnerability.
+- Unit, coverage, licensing, personal-data, secret, type, lint, build, and Playwright gates must all
+  pass before merge or deployment.
+- A real-account `doctor` may run only after interactive personal login and must emit a redacted
+  PASS without reading the global profile.
 
 ## Non-goals
 
 - No production application or canonical domain.
 - No organization-owned Clever target.
-- No reuse, logout, modification, or remediation of the non-personal Clever profile.
-- No rotation of credentials that were not exposed.
-- No account-wide audit system beyond the evidence available from local state and per-application Clever activity.
-- No attempt to prevent a human from deliberately bypassing the repository guard in an unrelated shell.
-
-## Acceptance criteria
-
-- The repository contains no personal or professional identity value.
-- Every guarded Clever action uses the isolated config, Personal Space owner, and dedicated SSH key.
-- Wrong identity, wrong owner, missing 2FA, inherited override, unsafe mode, dirty Git state, and failing gates all refuse before mutation.
-- Unit, focused integration, aggregate, browser, secret, personal-data, and licensing gates pass.
-- Real-account `doctor` passes without printing the enrolled email or reading the non-personal profile.
-- The incident check remains classified as metadata exposure with no detected resource mutation.
+- No reuse, logout, inspection, modification, or remediation of the professional Clever profile.
+- No organization inventory or account-wide audit beyond the explicit Personal Space inventory.
+- No claim that the repository can prevent deliberate bypass from an unrelated shell.

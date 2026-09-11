@@ -101,8 +101,12 @@ The unit gate emits an LCOV report under `coverage/` and fails below 90% line or
 
 Repository deployment commands are supported only through the guarded entry point. It isolates
 credentials from the machine-wide Clever configuration, requires the authenticated user's Personal
-Space, a valid token, enabled 2FA, and a dedicated SSH identity. Direct global `clever` commands are
-unsupported in this repository because they bypass those checks.
+Space, a valid token, and enabled 2FA. It also replaces `HOME` and every XDG state root for Clever
+subprocesses, so feature flags and ID caches cannot read or modify another Clever context. Direct
+global `clever` commands are unsupported in this repository because they bypass those checks.
+Personal application verification uses only the explicit `/v2/self/applications` API endpoint;
+organization inventory is never requested. Once bound, every CLI operation resolves the protected
+local `website-staging` alias instead of an account-wide application ID.
 
 For the first local enrollment, enter the expected personal email without echoing it or putting it in
 shell history. The value is removed before any child Clever process and persisted only in the
@@ -117,18 +121,28 @@ bun run clever:doctor
 ```
 
 The guarded staging flow permits one static application in Paris. It accepts no caller-supplied
-owner, application, alias, endpoint, credential, force, or SSH override:
+owner, application, alias, endpoint, credential, force, or transport override:
 
 ```sh
 bun run clever:personal -- create-staging
 bun run clever:personal -- deploy-staging
 bun run clever:personal -- status
 bun run clever:personal -- activity
-bun run clever:personal -- logs
 ```
 
 Deployment requires the canonical personal origin, a clean local `main` exactly equal to
-`origin/main`, then green aggregate and browser gates. Recovery remains explicit:
+`origin/main`, then green aggregate and browser gates. The tracked `site/` artifact is verified
+byte-for-byte against the production generator; refresh it after an intentional content change
+with `bun run sync:deployment-artifact`. Clever serves it through the repository Caddyfile with
+fixed security headers. `CC_BUILD_COMMAND=true` disables static-generator auto-detection, so no
+provider-side Bun build bypasses the repository's runtime floor.
+The repository is deployed by pinned Clever Tools from a private temporary local clone. Clever's
+native HTTPS/OAuth transport therefore cannot add a personal remote to the working repository, and
+the clone is removed before the command returns.
+Post-deploy smoke checks all three routes, their content boundary, passive-asset policy and response
+headers. Recovery remains explicit. Rollback accepts only a full commit from canonical `main`,
+repeats the clean/synchronized repository and quality gates, then applies the same smoke-and-stop
+contract as a normal deployment:
 
 ```sh
 bun run clever:personal -- stop-staging
