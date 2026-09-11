@@ -1,9 +1,14 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { buildStaticBrandSite, loadProductionSiteInput, writeStaticSite } from "./build";
+import {
+  buildProductionSite,
+  buildStaticBrandSite,
+  loadProductionSiteInput,
+  writeStaticSite,
+} from "./build";
 import { validProjection } from "./test-fixtures";
 
 const status = {
@@ -43,6 +48,17 @@ async function exists(path: string): Promise<boolean> {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return false;
     throw error;
   }
+}
+
+async function listRelativeFiles(root: string, relativeDirectory = ""): Promise<string[]> {
+  const entries = await readdir(join(root, relativeDirectory), { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const relativePath = join(relativeDirectory, entry.name);
+    if (entry.isDirectory()) files.push(...(await listRelativeFiles(root, relativePath)));
+    else if (entry.isFile()) files.push(relativePath);
+  }
+  return files;
 }
 
 afterEach(async () => {
@@ -101,6 +117,32 @@ describe("buildStaticBrandSite", () => {
       }),
     ).toThrow("brand.output_remote_asset");
   });
+
+  test("publishes an approved passive mark and rejects missing or executable marks", () => {
+    const base = {
+      brandProjection: validProjection,
+      fleetStatus: status,
+      uiStyles: "body { color: var(--lai-color-ink); }",
+      uiTokens: ":root { --lai-color-ink: CanvasText; }",
+      figurativeAssetsApproved: true,
+    } as const;
+
+    expect(() => buildStaticBrandSite({ ...base, brandMark: null })).toThrow(
+      "brand.approved_mark_missing",
+    );
+    expect(
+      buildStaticBrandSite({
+        ...base,
+        brandMark: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>',
+      }).has("assets/libre-ai-mark.svg"),
+    ).toBe(true);
+    expect(() =>
+      buildStaticBrandSite({
+        ...base,
+        brandMark: '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+      }),
+    ).toThrow("brand.output_executable_markup:assets/libre-ai-mark.svg");
+  });
 });
 
 describe("production input", () => {
@@ -128,9 +170,39 @@ describe("production input", () => {
       brandMark: null,
     });
   });
+
+  test("keeps the versioned Clever deployment artifact equal to generated production output", async () => {
+    const root = process.cwd();
+    const expected = await buildProductionSite(root);
+    const artifactRoot = join(root, "site");
+    const actualPaths = (await listRelativeFiles(artifactRoot)).sort();
+
+    expect(actualPaths).toEqual([...expected.keys()].sort());
+    for (const [path, contents] of expected) {
+      expect(await readFile(join(artifactRoot, path), "utf8")).toBe(contents);
+    }
+  });
 });
 
 describe("static artifact replacement", () => {
+  test("refuses an empty artifact", async () => {
+    const root = await temporaryRoot();
+    await expect(writeStaticSite(join(root, "dist"), new Map())).rejects.toThrow(
+      "brand.output_root_invalid",
+    );
+  });
+
+  test("recovers an interrupted previous artifact before replacement", async () => {
+    const root = await temporaryRoot();
+    const outputRoot = join(root, "dist");
+    await writeFixture(root, ".dist.previous/index.html", "previous");
+
+    await writeStaticSite(outputRoot, new Map([["index.html", "new"]]));
+
+    expect(await Bun.file(join(outputRoot, "index.html")).text()).toBe("new");
+    expect(await exists(join(root, ".dist.previous"))).toBe(false);
+  });
+
   test("replaces the complete output and removes a stale figurative asset", async () => {
     const root = await temporaryRoot();
     const outputRoot = join(root, "dist");

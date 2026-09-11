@@ -88,6 +88,64 @@ d'intégration que la forge créera ensuite. Lorsqu'une pull request est intégr
 corps du message de merge doit donc porter un trailer valide `Signed-off-by: Nom <email>` ; le gate
 post-merge vérifie ce commit supplémentaire et refuse son absence.
 
+## Frontière Clever Cloud personnelle
+
+Les commandes de déploiement du dépôt sont prises en charge uniquement via le point d'entrée gardé.
+Il isole les identifiants de la configuration Clever globale de la machine et exige le Personal
+Space de l'utilisateur authentifié, un jeton valide et la 2FA active. Il remplace aussi `HOME` et
+toutes les racines d'état XDG des sous-processus Clever : les feature flags et caches d'identifiants
+ne peuvent donc ni lire ni modifier un autre contexte Clever. Les commandes globales `clever`
+directes ne sont pas prises en charge dans ce dépôt, car elles contournent ces contrôles.
+La vérification des applications interroge uniquement l'endpoint personnel explicite
+`/v2/self/applications` ; aucun inventaire d'organisation n'est demandé. Une fois le binding créé,
+toute opération CLI résout l'alias local protégé `website-staging`, jamais un identifiant recherché
+à l'échelle du compte.
+
+Pour le premier enrôlement local, saisir l'adresse personnelle attendue sans l'afficher ni
+l'inscrire dans l'historique du shell. Elle est retirée avant tout sous-processus Clever et persiste
+uniquement dans la politique locale protégée par ses permissions :
+
+```sh
+read -r -s LIBRE_AI_CLEVER_EXPECTED_EMAIL
+export LIBRE_AI_CLEVER_EXPECTED_EMAIL
+bun run clever:login
+unset LIBRE_AI_CLEVER_EXPECTED_EMAIL
+bun run clever:doctor
+```
+
+Le flux gardé autorise une application de staging statique à Paris. Aucun owner, application, alias,
+endpoint, identifiant, force ou paramètre de transport fourni par l'appelant n'est accepté :
+
+```sh
+bun run clever:personal -- create-staging
+bun run clever:personal -- deploy-staging
+bun run clever:personal -- status
+bun run clever:personal -- activity
+```
+
+Le déploiement exige l'origine Git personnelle canonique, un `main` local propre et strictement égal
+à `origin/main`, puis les gates agrégé et navigateur au vert. L'artefact versionné `site/` est
+comparé octet par octet à la sortie du générateur de production ; après un changement intentionnel
+de contenu, le synchroniser avec `bun run sync:deployment-artifact`. Clever le sert via le Caddyfile
+du dépôt avec des en-têtes de sécurité fixes. `CC_BUILD_COMMAND=true` désactive l'auto-détection de
+générateur statique : aucun build Bun fournisseur ne contourne le plancher de version du dépôt.
+Le dépôt est envoyé par la version épinglée de Clever Tools depuis un clone local temporaire privé.
+Son transport HTTPS/OAuth natif ne peut donc pas ajouter de remote personnel au dépôt de travail,
+et le clone est supprimé avant le retour de la commande.
+Le smoke post-déploiement contrôle les trois routes, leur frontière de contenu, les actifs passifs
+et les en-têtes HTTP. La récupération reste explicite. Le rollback n'accepte qu'un commit complet
+de l'historique canonique de `main`, répète les contrôles de dépôt propre/synchronisé et les gates,
+puis applique le même contrat de smoke et d'arrêt automatique qu'un déploiement normal :
+
+```sh
+bun run clever:personal -- stop-staging
+bun run clever:personal -- rollback-staging <previous-commit-sha>
+```
+
+La création de production, le domaine canonique et les cibles détenues par une organisation restent
+refusés. Aucune URL technique de staging n'est revendiquée avant un déploiement et un smoke
+post-déploiement verts.
+
 ## Non-objectifs et refus
 
 Website refuse délibérément de :

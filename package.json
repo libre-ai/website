@@ -8,15 +8,19 @@
     "bun": ">=1.4.0"
   },
   "overrides": {
-    "fast-uri": "4.1.4"
+    "fast-uri": "4.1.4",
+    "lodash": "4.18.1",
+    "simple-git": "3.36.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.3",
+    "@clevercloud/client": "12.0.0",
     "@libre-ai/contracts-authority": "github:libre-ai/contracts#ee144f03cf7d3deeda02a9fcd5e10377c2e99cb4",
     "@libre-ai/governance": "github:libre-ai/governance#9ac334cdf86cf05d126091f394d07c01d7745930",
     "@libre-ai/ui": "github:libre-ai/ui#99282032a9c71ca4c30efeb441329144ff95cbf8",
     "@playwright/test": "1.61.1",
     "@types/bun": "1.3.14",
+    "clever-tools": "4.11.0",
     "typescript": "7.0.2"
   },
   "scripts": {
@@ -24,7 +28,11 @@
     "check:bun": "bun run check:bun:runtime && bun node_modules/@libre-ai/governance/tools/quality/check-bun-manifests.ts",
     "check:toolchain": "bun run check:bun && bun node_modules/@libre-ai/governance/tools/quality/check-toolchain.ts",
     "build": "bun run check:bun && bun src/build.ts",
+    "sync:deployment-artifact": "bun run check:bun:runtime && bun tools/clever/sync-site.ts",
     "preview:brand": "bun run check:bun:runtime && bun src/preview.ts",
+    "clever:personal": "bun run check:bun:runtime && bun tools/clever/personal.ts",
+    "clever:doctor": "bun run check:bun:runtime && bun tools/clever/personal.ts doctor",
+    "clever:login": "bun run check:bun:runtime && bun tools/clever/personal.ts login",
     "test:e2e": "bun run check:bun:runtime && bun run build && env -u NO_COLOR -u FORCE_COLOR playwright test",
     "test:e2e:brand-local": "bun run check:bun:runtime && LIBRE_AI_WEBSITE_OUTPUT_ROOT=.preview env -u NO_COLOR -u FORCE_COLOR playwright test",
     "check:secret-scan": "bun run check:bun:runtime && bun node_modules/@libre-ai/governance/tools/quality/check-secret-scan.ts",

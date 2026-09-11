@@ -97,6 +97,61 @@ bun run test:e2e
 
 The unit gate emits an LCOV report under `coverage/` and fails below 90% line or function coverage.
 
+## Personal Clever Cloud boundary
+
+Repository deployment commands are supported only through the guarded entry point. It isolates
+credentials from the machine-wide Clever configuration, requires the authenticated user's Personal
+Space, a valid token, and enabled 2FA. It also replaces `HOME` and every XDG state root for Clever
+subprocesses, so feature flags and ID caches cannot read or modify another Clever context. Direct
+global `clever` commands are unsupported in this repository because they bypass those checks.
+Personal application verification uses only the explicit `/v2/self/applications` API endpoint;
+organization inventory is never requested. Once bound, every CLI operation resolves the protected
+local `website-staging` alias instead of an account-wide application ID.
+
+For the first local enrollment, enter the expected personal email without echoing it or putting it in
+shell history. The value is removed before any child Clever process and persisted only in the
+mode-protected local policy:
+
+```sh
+read -r -s LIBRE_AI_CLEVER_EXPECTED_EMAIL
+export LIBRE_AI_CLEVER_EXPECTED_EMAIL
+bun run clever:login
+unset LIBRE_AI_CLEVER_EXPECTED_EMAIL
+bun run clever:doctor
+```
+
+The guarded staging flow permits one static application in Paris. It accepts no caller-supplied
+owner, application, alias, endpoint, credential, force, or transport override:
+
+```sh
+bun run clever:personal -- create-staging
+bun run clever:personal -- deploy-staging
+bun run clever:personal -- status
+bun run clever:personal -- activity
+```
+
+Deployment requires the canonical personal origin, a clean local `main` exactly equal to
+`origin/main`, then green aggregate and browser gates. The tracked `site/` artifact is verified
+byte-for-byte against the production generator; refresh it after an intentional content change
+with `bun run sync:deployment-artifact`. Clever serves it through the repository Caddyfile with
+fixed security headers. `CC_BUILD_COMMAND=true` disables static-generator auto-detection, so no
+provider-side Bun build bypasses the repository's runtime floor.
+The repository is deployed by pinned Clever Tools from a private temporary local clone. Clever's
+native HTTPS/OAuth transport therefore cannot add a personal remote to the working repository, and
+the clone is removed before the command returns.
+Post-deploy smoke checks all three routes, their content boundary, passive-asset policy and response
+headers. Recovery remains explicit. Rollback accepts only a full commit from canonical `main`,
+repeats the clean/synchronized repository and quality gates, then applies the same smoke-and-stop
+contract as a normal deployment:
+
+```sh
+bun run clever:personal -- stop-staging
+bun run clever:personal -- rollback-staging <previous-commit-sha>
+```
+
+Production creation, a canonical domain, and organization-owned targets remain refused. A technical
+staging URL is not claimed until deployment and post-deploy smoke evidence are green.
+
 The PR gate verifies authored commits, but it cannot inspect the integration commit that the forge
 will create later. When a pull request is integrated with a merge commit, its merge-message body
 must therefore carry a valid `Signed-off-by: Name <email>` trailer; the post-merge push gate checks
@@ -135,7 +190,7 @@ Full licence texts are in [`LICENSES/`](LICENSES). Copyright (c) 2026 Libre AI c
 <!-- libre-ai:project-status:begin -->
 <!-- Section générée depuis project.v1.yaml — ne pas éditer à la main. -->
 
-- Situation actuelle : Le build de production rend la marque Libre AI, ses preuves, la flotte complète, les comparaisons datées et un accès au starter exécutable. Le mot-symbole reste seul publié : le signe figuratif est refusé tant que ses contrôles ne sont pas acceptés. Aucun déploiement public n'est encore prouvé.
+- Situation actuelle : Le build de production rend la marque Libre AI, ses preuves, la flotte complète, les comparaisons datées et un accès au starter exécutable. Le mot-symbole reste seul publié : le signe figuratif est refusé tant que ses contrôles ne sont pas acceptés. La frontière de déploiement Clever personnelle est testée ; aucun déploiement public n'est encore prouvé.
 - Maturité : specified
 - Exposition : spec-published
 - Confiance : medium
